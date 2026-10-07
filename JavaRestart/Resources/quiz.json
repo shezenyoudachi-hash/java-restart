@@ -1,0 +1,502 @@
+[
+ {
+  "id": 0,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "true / true",
+   "false / true",
+   "true / false",
+   "false / false"
+  ],
+  "a": 1,
+  "exp": "`==` は参照の比較。`new String` は別オブジェクトなので false。内容の比較は `equals` で true。",
+  "code": "String a = \"java\";\nString b = new String(\"java\");\nSystem.out.println(a == b);\nSystem.out.println(a.equals(b));",
+  "chapter": 4
+ },
+ {
+  "id": 1,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "3",
+   "4",
+   "4.5",
+   "5"
+  ],
+  "a": 1,
+  "exp": "int同士の除算は切り捨てで `7/2 = 3`、剰余 `7%2 = 1`。合計 4。",
+  "code": "System.out.println(7 / 2 + 7 % 2);",
+  "chapter": 3
+ },
+ {
+  "id": 2,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "11",
+   "12",
+   "13",
+   "10"
+  ],
+  "a": 1,
+  "exp": "`i++` は 5 を返してから i=6。`++i` は i=7 にしてから 7 を返す。5 + 7 = 12。",
+  "code": "int i = 5;\nint j = i++ + ++i;\nSystem.out.println(j);",
+  "chapter": 3
+ },
+ {
+  "id": 3,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "0 null",
+   "0 \"\"",
+   "コンパイルエラー",
+   "NullPointerException"
+  ],
+  "a": 0,
+  "exp": "配列の要素はデフォルト値で初期化される。int は 0、参照型は null。null を文字列連結すると \"null\" になる。",
+  "code": "int[] a = new int[3];\nString[] s = new String[2];\nSystem.out.println(a[0] + \" \" + s[0]);",
+  "chapter": 6
+ },
+ {
+  "id": 4,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "A",
+   "B",
+   "コンパイルエラー",
+   "実行時エラー"
+  ],
+  "a": 0,
+  "exp": "static メソッドはオーバーライドされず「隠蔽」になる。呼び出しは変数の宣言型（A）で決まるので \"A\"。",
+  "code": "class A { static String f() { return \"A\"; } }\nclass B extends A { static String f() { return \"B\"; } }\n\nA x = new B();\nSystem.out.println(x.f());",
+  "chapter": 8
+ },
+ {
+  "id": 5,
+  "cat": "基礎",
+  "q": "`System.out.println(f());` の出力は？",
+  "opts": [
+   "1",
+   "F1",
+   "1F",
+   "F"
+  ],
+  "a": 1,
+  "exp": "return の値は確定するが、メソッドを抜ける前に finally が実行される。先に F が出力され、その後 println で 1。",
+  "code": "static int f() {\n    try {\n        return 1;\n    } finally {\n        System.out.print(\"F\");\n    }\n}",
+  "chapter": 10
+ },
+ {
+  "id": 6,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "[2, 3]",
+   "[1, 3]",
+   "[1, 2]",
+   "IndexOutOfBoundsException"
+  ],
+  "a": 1,
+  "exp": "int リテラルを渡すと `remove(int index)` が選ばれ、インデックス1（値2）が消える。値で消したいなら `remove(Integer.valueOf(1))`。",
+  "code": "List<Integer> list = new ArrayList<>(List.of(1, 2, 3));\nlist.remove(1);\nSystem.out.println(list);",
+  "chapter": 11
+ },
+ {
+  "id": 7,
+  "cat": "基礎",
+  "q": "catch するか throws 宣言しないとコンパイルエラーになるのはどれ？",
+  "opts": [
+   "`NullPointerException`",
+   "`IOException`",
+   "`IllegalArgumentException`",
+   "`ArithmeticException`"
+  ],
+  "a": 1,
+  "exp": "IOException はチェック例外。他の3つは RuntimeException のサブクラス（非チェック例外）なので処理の強制はない。",
+  "chapter": 10
+ },
+ {
+  "id": 8,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "b",
+   "bc",
+   "bcd",
+   "abc"
+  ],
+  "a": 1,
+  "exp": "従来の switch 文は break までフォールスルーする。case 2 から入り b、c を出力して break。",
+  "code": "int n = 2;\nswitch (n) {\n    case 1: System.out.print(\"a\");\n    case 2: System.out.print(\"b\");\n    case 3: System.out.print(\"c\"); break;\n    default: System.out.print(\"d\");\n}",
+  "chapter": 5
+ },
+ {
+  "id": 9,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "true / true",
+   "true / false",
+   "false / false",
+   "false / true"
+  ],
+  "a": 1,
+  "exp": "オートボクシングは `Integer.valueOf` を使い、-128〜127 はキャッシュされた同一オブジェクトになる。128 は別オブジェクトなので false。ラッパー型の比較は equals で。",
+  "code": "Integer a = 127, b = 127;\nInteger c = 128, d = 128;\nSystem.out.println(a == b);\nSystem.out.println(c == d);",
+  "chapter": 2
+ },
+ {
+  "id": 10,
+  "cat": "基礎",
+  "q": "出力は？",
+  "opts": [
+   "a",
+   "ab",
+   "b",
+   "コンパイルエラー"
+  ],
+  "a": 0,
+  "exp": "String は不変。concat は新しい文字列を返すだけで s は変わらない。`s = s.concat(\"b\")` と代入が必要。",
+  "code": "String s = \"a\";\ns.concat(\"b\");\nSystem.out.println(s);",
+  "chapter": 4
+ },
+ {
+  "id": 11,
+  "cat": "基礎",
+  "q": "equals だけをオーバーライドし hashCode をオーバーライドしないクラスを HashSet に入れると？",
+  "opts": [
+   "コンパイルエラーになる",
+   "equals が true の2つのオブジェクトが両方とも格納されうる",
+   "実行時に例外が出る",
+   "常に正しく重複排除される"
+  ],
+  "a": 1,
+  "exp": "HashSet はまず hashCode でバケットを決める。hashCode が異なれば equals は呼ばれず、論理的に等しいオブジェクトが重複して入る。equals と hashCode は必ずセットで。",
+  "chapter": 11
+ },
+ {
+  "id": 12,
+  "cat": "モダンJava",
+  "q": "コンパイルエラーになるのはどれ？",
+  "opts": [
+   "`var list = new ArrayList();`",
+   "`var x;`",
+   "`for (var s : list) { }`",
+   "`var n = 10;`"
+  ],
+  "a": 1,
+  "exp": "var は初期化式から型を推論するため、初期化なしの宣言はできない。null だけの代入（`var x = null;`）もエラー。",
+  "since": "Java 10",
+  "chapter": 2
+ },
+ {
+  "id": 13,
+  "cat": "モダンJava",
+  "q": "出力は？",
+  "opts": [
+   "1 true",
+   "1 false",
+   "コンパイルエラー（getX() が必要）",
+   "コンパイルエラー（equals 未定義）"
+  ],
+  "a": 0,
+  "exp": "record はアクセサ `x()`、equals / hashCode / toString を自動生成する。フィールドは final。",
+  "since": "Java 16",
+  "code": "record Point(int x, int y) {}\n\nPoint p = new Point(1, 2);\nSystem.out.println(p.x() + \" \" + p.equals(new Point(1, 2)));",
+  "chapter": 17
+ },
+ {
+  "id": 14,
+  "cat": "モダンJava",
+  "q": "出力は？",
+  "opts": [
+   "mid",
+   "MID",
+   "high",
+   "コンパイルエラー"
+  ],
+  "a": 1,
+  "exp": "switch 式のブロックでは `yield` で値を返す。アロー形式はフォールスルーしない。",
+  "since": "Java 14",
+  "code": "int n = 3;\nString s = switch (n) {\n    case 1, 2 -> \"low\";\n    case 3 -> {\n        String t = \"mid\";\n        yield t.toUpperCase();\n    }\n    default -> \"high\";\n};\nSystem.out.println(s);",
+  "chapter": 5
+ },
+ {
+  "id": 15,
+  "cat": "モダンJava",
+  "q": "出力は？",
+  "opts": [
+   "15",
+   "35",
+   "55",
+   "9"
+  ],
+  "a": 1,
+  "exp": "奇数 1, 3, 5 を2乗して 1 + 9 + 25 = 35。",
+  "since": "Java 8",
+  "code": "int r = List.of(1, 2, 3, 4, 5).stream()\n    .filter(n -> n % 2 == 1)\n    .map(n -> n * n)\n    .reduce(0, Integer::sum);\nSystem.out.println(r);",
+  "chapter": 15
+ },
+ {
+  "id": 16,
+  "cat": "モダンJava",
+  "q": "このコードを実行すると何が出力される？",
+  "opts": [
+   "abc",
+   "ABC",
+   "何も出力されない",
+   "aAbBcC"
+  ],
+  "a": 2,
+  "exp": "Stream の中間操作は遅延評価。collect や forEach などの終端操作がないので、peek も実行されない。",
+  "since": "Java 8",
+  "code": "Stream.of(\"a\", \"b\", \"c\")\n      .peek(System.out::print)\n      .map(String::toUpperCase);",
+  "chapter": 15
+ },
+ {
+  "id": 17,
+  "cat": "モダンJava",
+  "q": "出力は？",
+  "opts": [
+   "0",
+   "-1",
+   "null",
+   "NoSuchElementException"
+  ],
+  "a": 1,
+  "exp": "空の Optional に map しても空のまま。orElse のデフォルト値 -1 が返る。`get()` を呼んだ場合は例外。",
+  "since": "Java 8",
+  "code": "Optional<String> name = Optional.empty();\nSystem.out.println(name.map(String::length).orElse(-1));",
+  "chapter": 16
+ },
+ {
+  "id": 18,
+  "cat": "モダンJava",
+  "q": "実行結果は？",
+  "opts": [
+   "[1, 2, 3]",
+   "[1, 2]",
+   "UnsupportedOperationException",
+   "コンパイルエラー"
+  ],
+  "a": 2,
+  "exp": "`List.of` は不変リスト。add はコンパイルは通るが実行時に UnsupportedOperationException。null 要素も入れられない。",
+  "since": "Java 9",
+  "code": "List<Integer> list = List.of(1, 2);\nlist.add(3);\nSystem.out.println(list);",
+  "chapter": 11
+ },
+ {
+  "id": 19,
+  "cat": "モダンJava",
+  "q": "出力は？",
+  "opts": [
+   "{a=2, b=1}",
+   "{apple=1, avocado=1, banana=1}",
+   "{a=[apple, avocado], b=[banana]}",
+   "{2=a, 1=b}"
+  ],
+  "a": 0,
+  "exp": "groupingBy の第2引数（ダウンストリームコレクタ）に counting を渡すと、キーごとの件数になる。省略すると List にまとめられる。",
+  "since": "Java 8",
+  "code": "Map<Character, Long> m = Stream.of(\"apple\", \"avocado\", \"banana\")\n    .collect(Collectors.groupingBy(s -> s.charAt(0), Collectors.counting()));\nSystem.out.println(m);",
+  "chapter": 15
+ },
+ {
+  "id": 20,
+  "cat": "モダンJava",
+  "q": "出力は？",
+  "opts": [
+   "HELLO",
+   "hello",
+   "short",
+   "コンパイルエラー（s は未定義）"
+  ],
+  "a": 0,
+  "exp": "パターンマッチングの instanceof。マッチしたら s が String として使え、&& の右側でも参照できる（|| ではスコープ外）。",
+  "since": "Java 16",
+  "code": "Object o = \"hello\";\nif (o instanceof String s && s.length() > 3) {\n    System.out.println(s.toUpperCase());\n} else {\n    System.out.println(\"short\");\n}",
+  "chapter": 17
+ },
+ {
+  "id": 21,
+  "cat": "モダンJava",
+  "q": "`sealed interface Shape permits Circle, Square {}` について正しいのは？",
+  "opts": [
+   "Circle は必ず record でなければならない",
+   "Circle は final・sealed・non-sealed のいずれかを宣言する必要がある",
+   "Shape は abstract class にしか使えない",
+   "permits に書かないクラスも実装できる"
+  ],
+  "a": 1,
+  "exp": "sealed の許可サブクラスは final / sealed / non-sealed のどれかで継承の続け方を明示する（record や enum は暗黙に final）。switch のパターンで網羅性チェックにも使える。",
+  "since": "Java 17",
+  "chapter": 17
+ },
+ {
+  "id": 22,
+  "cat": "モダンJava",
+  "q": "`t.lines().count()` の結果は？",
+  "opts": [
+   "1",
+   "2",
+   "3",
+   "4"
+  ],
+  "a": 1,
+  "exp": "テキストブロックの内容は \"Hi\\nJava\\n\"。共通インデントは除去され、最初の改行は含まれない。行は2つ。",
+  "since": "Java 15",
+  "code": "String t = \"\"\"\n    Hi\n    Java\n    \"\"\";",
+  "chapter": 4
+ },
+ {
+  "id": 23,
+  "cat": "モダンJava",
+  "q": "出力は？",
+  "opts": [
+   "7",
+   "8",
+   "6",
+   "9"
+  ],
+  "a": 1,
+  "exp": "`andThen` は f の後に g。`(3+1)*2 = 8`。`compose` なら g が先で `3*2+1 = 7`。",
+  "since": "Java 8",
+  "code": "Function<Integer, Integer> f = x -> x + 1;\nFunction<Integer, Integer> g = x -> x * 2;\nSystem.out.println(f.andThen(g).apply(3));",
+  "chapter": 14
+ },
+ {
+  "id": 24,
+  "cat": "Silver対策",
+  "q": "エントリポイントとして**認められない** main メソッドはどれ？",
+  "opts": [
+   "`public static void main(String... args)`",
+   "`static public void main(String[] a)`",
+   "`public static int main(String[] args)`",
+   "`public static final void main(String args[])`"
+  ],
+  "a": 2,
+  "exp": "戻り値は void でなければならない。修飾子の順序、引数名、可変長引数、final の付与は問題ない。",
+  "chapter": 1
+ },
+ {
+  "id": 25,
+  "cat": "Silver対策",
+  "q": "コンパイル・実行の結果は？",
+  "opts": [
+   "1",
+   "0",
+   "コンパイルエラー",
+   "実行時エラー"
+  ],
+  "a": 2,
+  "exp": "ローカル変数は自動初期化されない。flag が変数のため、コンパイラは x の確実な代入を判断できずエラー。`final boolean flag = true;` なら定数式として通る。",
+  "code": "boolean flag = true;\nint x;\nif (flag) x = 1;\nSystem.out.println(x);",
+  "chapter": 2
+ },
+ {
+  "id": 26,
+  "cat": "Silver対策",
+  "q": "出力は？",
+  "opts": [
+   "Ja",
+   "av",
+   "ava",
+   "jav"
+  ],
+  "a": 1,
+  "exp": "substring(begin, end) は end を含まない。インデックス1〜2の \"av\"。",
+  "code": "System.out.println(\"Java\".substring(1, 3));",
+  "chapter": 4
+ },
+ {
+  "id": 27,
+  "cat": "Silver対策",
+  "q": "出力は？",
+  "opts": [
+   "xabcd",
+   "xcbad",
+   "cbadx",
+   "dcbax"
+  ],
+  "a": 1,
+  "exp": "StringBuilder は可変でメソッドチェーンが同じオブジェクトを操作する。cba → cbad → xcbad。",
+  "code": "StringBuilder sb = new StringBuilder(\"abc\");\nsb.reverse().append(\"d\").insert(0, \"x\");\nSystem.out.println(sb);",
+  "chapter": 4
+ },
+ {
+  "id": 28,
+  "cat": "Silver対策",
+  "q": "コンパイル結果は？",
+  "opts": [
+   "正常にコンパイルされる",
+   "C のコンストラクタでコンパイルエラー",
+   "P でコンパイルエラー",
+   "実行時にエラー"
+  ],
+  "a": 1,
+  "exp": "C() の先頭には暗黙の `super()` が入るが、P に引数なしコンストラクタがない（引数ありを定義したのでデフォルトも作られない）。`super(0);` などが必要。",
+  "code": "class P {\n    P(int x) { }\n}\nclass C extends P {\n    C() { }\n}",
+  "chapter": 8
+ },
+ {
+  "id": 29,
+  "cat": "Silver対策",
+  "q": "出力は？",
+  "opts": [
+   "00 10",
+   "00 10 20",
+   "00 01 10 11",
+   "00"
+  ],
+  "a": 0,
+  "exp": "j==1 で外側ループの次へ。i=0 で \"00\"、i=1 で \"10\"、i=2 は j=0 で break outer。",
+  "code": "outer:\nfor (int i = 0; i < 3; i++) {\n    for (int j = 0; j < 3; j++) {\n        if (j == 1) continue outer;\n        if (i == 2) break outer;\n        System.out.print(i + \"\" + j + \" \");\n    }\n}",
+  "chapter": 5
+ },
+ {
+  "id": 30,
+  "cat": "Silver対策",
+  "q": "コンパイルエラーになる配列の宣言はどれ？",
+  "opts": [
+   "`int[] a = {1, 2};`",
+   "`int a[] = new int[]{1, 2};`",
+   "`int[] a = new int[2]{1, 2};`",
+   "`int[][] a = new int[2][];`"
+  ],
+  "a": 2,
+  "exp": "初期化子を使うときは要素数を書けない。多次元配列は2次元目の要素数を省略できる。",
+  "chapter": 6
+ },
+ {
+  "id": 31,
+  "cat": "Silver対策",
+  "q": "2つのインタフェースが同じシグネチャの default メソッドを持ち、クラスが両方を implements した場合は？",
+  "opts": [
+   "先に書いたインタフェースの実装が使われる",
+   "クラスでオーバーライドしないとコンパイルエラー",
+   "実行時に例外",
+   "常にコンパイルエラーで解決不能"
+  ],
+  "a": 1,
+  "exp": "どちらを使うか決められないため、クラスでオーバーライドが必要。中で `A.super.m()` と書けば特定の実装を呼べる。",
+  "chapter": 9
+ },
+ {
+  "id": 32,
+  "cat": "Silver対策",
+  "q": "出力は？",
+  "opts": [
+   "big",
+   "ok",
+   "ArithmeticException",
+   "コンパイルエラー"
+  ],
+  "a": 1,
+  "exp": "`&&` は短絡評価。左が false なので右の 10/x は評価されない。`&` だと両辺評価され ArithmeticException。",
+  "code": "int x = 0;\nif (x != 0 && 10 / x > 1) {\n    System.out.println(\"big\");\n} else {\n    System.out.println(\"ok\");\n}",
+  "chapter": 3
+ }
+]

@@ -1,0 +1,117 @@
+[
+ {
+  "id": 0,
+  "t": "ドメインモデルを作る",
+  "learn": [
+   "record",
+   "enum",
+   "コレクション"
+  ],
+  "tasks": [
+   "原料（Material）・ロット（Lot）・試験結果（TestResult）を record で定義する",
+   "ロットの状態を enum で表す（受入済 / 試験中 / 合格 / 不合格 / 承認済）",
+   "List にロットを数件入れて一覧表示する"
+  ],
+  "code": "enum LotStatus { RECEIVED, TESTING, PASSED, FAILED, APPROVED }\n\nrecord Material(String code, String name) {}\n\nrecord Lot(String lotNo, Material material, LocalDate receivedOn,\n           LocalDate expiresOn, LotStatus status) {\n\n    Lot {   // コンパクトコンストラクタで入力チェック\n        Objects.requireNonNull(lotNo);\n        if (expiresOn.isBefore(receivedOn))\n            throw new IllegalArgumentException(\"有効期限が受入日より前です\");\n    }\n\n    Lot withStatus(LotStatus next) {   // record は不変なので新しいインスタンスを返す\n        return new Lot(lotNo, material, receivedOn, expiresOn, next);\n    }\n}"
+ },
+ {
+  "id": 1,
+  "t": "CLIで登録・検索・集計",
+  "learn": [
+   "Stream",
+   "Optional",
+   "Comparator",
+   "Scanner"
+  ],
+  "tasks": [
+   "メニュー（登録 / 一覧 / ロット番号で検索 / 集計）を Scanner で作る",
+   "検索結果を Optional で返し、見つからないときのメッセージを出す",
+   "状態ごとの件数を groupingBy + counting で集計する",
+   "有効期限が30日以内のロットを期限順に並べて表示する"
+  ]
+ },
+ {
+  "id": 2,
+  "t": "入力チェックと独自例外",
+  "learn": [
+   "例外",
+   "チェック/非チェック",
+   "try-catch"
+  ],
+  "tasks": [
+   "ロット番号重複時に DuplicateLotException を投げる",
+   "日付の書式ミス（DateTimeParseException）を捕まえて再入力させる",
+   "チェック例外にするか非チェック例外にするかを理由つきで決める"
+  ]
+ },
+ {
+  "id": 3,
+  "t": "ファイルに保存する",
+  "learn": [
+   "java.nio.file",
+   "try-with-resources",
+   "CSV"
+  ],
+  "tasks": [
+   "Files.writeString / readAllLines でロット一覧をCSV保存・読込する",
+   "BufferedReader を try-with-resources で使う版も書く",
+   "起動時に前回のデータを読み込む"
+  ]
+ },
+ {
+  "id": 4,
+  "t": "承認フローを状態遷移で表す",
+  "learn": [
+   "sealed",
+   "switch式",
+   "パターンマッチ"
+  ],
+  "tasks": [
+   "許可された遷移だけを switch 式で定義する（例：TESTING → PASSED / FAILED、PASSED → APPROVED）",
+   "不正な遷移は IllegalStateException",
+   "承認者名・承認日時を記録する（誰がいつ）"
+  ]
+ },
+ {
+  "id": 5,
+  "t": "JUnit 5 でテストを書く",
+  "learn": [
+   "JUnit 5",
+   "assertThrows",
+   "パラメータ化テスト"
+  ],
+  "tasks": [
+   "状態遷移の正常系・異常系をテストする",
+   "@ParameterizedTest で不正遷移を一括テストする",
+   "Gradle か Maven でテストを実行できるようにする"
+  ]
+ },
+ {
+  "id": 6,
+  "t": "JDBC でDBに保存する",
+  "learn": [
+   "JDBC",
+   "PreparedStatement",
+   "トランザクション"
+  ],
+  "tasks": [
+   "H2（組み込みDB）にテーブルを作る",
+   "CSV保存を DAO インタフェースの差し替えで DB 保存に変える",
+   "承認と履歴登録を1トランザクションで行い、失敗時は rollback"
+  ]
+ },
+ {
+  "id": 7,
+  "t": "Spring Boot で Web API にする",
+  "learn": [
+   "Spring Boot",
+   "DI",
+   "Spring Data JPA"
+  ],
+  "tasks": [
+   "ロットの登録・一覧・承認を REST API にする",
+   "record を DTO に使い、Entity と分ける",
+   "@Transactional とバリデーション（@Valid）を付ける"
+  ]
+ }
+]

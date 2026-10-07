@@ -1,0 +1,1922 @@
+[
+ {
+  "id": 1,
+  "part": 1,
+  "t": "プログラムの構造と実行",
+  "sum": "JDKとJVM、mainメソッド、パッケージとimport",
+  "quiz": [
+   24
+  ],
+  "lead": "Javaのソースコードがどのように実行されるかと、最小のプログラムの形を押さえます。ここが曖昧だと、後の章のエラーメッセージを読み解けません。",
+  "secs": [
+   {
+    "h": "コンパイルと実行の流れ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "ソースファイル（`.java`）を `javac` でコンパイルすると、OSに依存しない**バイトコード**（`.class`）ができます。それを各OS用の **JVM**（Java仮想マシン）が実行します。JDK は javac などの開発ツールと実行環境をまとめたものです。"
+     },
+     {
+      "type": "p",
+      "text": "Java 11 以降は `java Hello.java` のように、単一ファイルならコンパイルせずに直接実行できます（.class はファイルとして残りません）。"
+     },
+     {
+      "type": "code",
+      "text": "// Hello.java\npublic class Hello {\n    public static void main(String[] args) {\n        System.out.println(\"引数の数: \" + args.length);\n    }\n}\n\n// $ javac Hello.java    → Hello.class が生成される\n// $ java Hello a b      → 引数の数: 2"
+     }
+    ]
+   },
+   {
+    "h": "mainメソッドの条件",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "エントリポイントになる main は `public static void main(String[] args)` が基本形です。次の違いは許されます。"
+     },
+     {
+      "type": "list",
+      "items": [
+       "引数名は自由（`String[] a`）、可変長引数 `String... args` も可",
+       "`public` と `static` の順序は入れ替え可、`final` の付与も可",
+       "配列の書き方 `String args[]` も可"
+      ]
+     },
+     {
+      "type": "p",
+      "text": "戻り値は必ず `void` です。なお Java 25 では `void main()` だけで書ける簡潔な形が正式に加わりましたが、資格試験や既存コードでは従来の形が中心です。"
+     }
+    ]
+   },
+   {
+    "h": "パッケージとimport",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`package` 宣言はファイルの先頭（コメントを除く）に1つだけ書けます。`import` はその後です。`java.lang` パッケージ（String、Math、System など）は自動でインポートされます。"
+     },
+     {
+      "type": "p",
+      "text": "`import java.util.*;` のワイルドカードは、そのパッケージ直下のクラスだけが対象で、サブパッケージ（`java.util.function` など）は含みません。"
+     },
+     {
+      "type": "code",
+      "text": "package jp.example.lot;\n\nimport java.time.LocalDate;\nimport java.util.*;              // java.util 直下のみ\nimport static java.lang.Math.max; // static メンバを名前だけで使える\n\npublic class Main {\n    public static void main(String[] args) {\n        List<String> lots = new ArrayList<>();\n        System.out.println(max(3, 5) + \" \" + LocalDate.now());\n    }\n}"
+     }
+    ]
+   },
+   {
+    "h": "識別子と命名規則",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "識別子は英字・`$`・`_` で始め、数字では始められません。予約語（`class`、`int` など）も使えません。`_` 1文字だけの名前は Java 9 以降エラーです。"
+     },
+     {
+      "type": "p",
+      "text": "慣習として、クラスは `UpperCamelCase`、メソッドと変数は `lowerCamelCase`、定数は `UPPER_SNAKE_CASE` で書きます。"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "ソース → javac → バイトコード → JVM で実行",
+   "main の戻り値は void。修飾子の順序や引数名は自由",
+   "java.lang は自動 import。ワイルドカードはサブパッケージを含まない"
+  ],
+  "traps": [
+   "package 宣言より前に import を書くとコンパイルエラー",
+   "`public static int main(...)` はコンパイルできても起動用 main にならない"
+  ]
+ },
+ {
+  "id": 2,
+  "part": 1,
+  "t": "データ型と変数",
+  "sum": "プリミティブ型、型変換、ラッパークラス、var",
+  "quiz": [
+   9,
+   12,
+   25
+  ],
+  "lead": "Javaの型は、値そのものを持つプリミティブ型と、オブジェクトへの参照を持つ参照型の2種類です。この区別が == の挙動や引数の渡し方を左右します。",
+  "secs": [
+   {
+    "h": "プリミティブ型の8種類",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "型",
+       "サイズ",
+       "デフォルト値",
+       "リテラル例"
+      ],
+      "rows": [
+       [
+        "`byte`",
+        "8bit",
+        "0",
+        "`10`"
+       ],
+       [
+        "`short`",
+        "16bit",
+        "0",
+        "`1000`"
+       ],
+       [
+        "`int`",
+        "32bit",
+        "0",
+        "`1_000_000`, `0x1F`, `0b101`"
+       ],
+       [
+        "`long`",
+        "64bit",
+        "0L",
+        "`10L`"
+       ],
+       [
+        "`float`",
+        "32bit",
+        "0.0f",
+        "`3.14f`"
+       ],
+       [
+        "`double`",
+        "64bit",
+        "0.0",
+        "`3.14`, `1e3`"
+       ],
+       [
+        "`char`",
+        "16bit",
+        "'\\u0000'",
+        "`'A'`"
+       ],
+       [
+        "`boolean`",
+        "—",
+        "false",
+        "`true`"
+       ]
+      ]
+     },
+     {
+      "type": "p",
+      "text": "小数リテラルは double 扱いなので、`float f = 3.14;` はエラーです。`0` で始まる整数は8進数として解釈されます（`010` は 8）。"
+     }
+    ]
+   },
+   {
+    "h": "型変換とキャスト",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "小さい型から大きい型への**拡大変換**は自動で行われます（byte → short → int → long → float → double）。逆の**縮小変換**には明示的なキャストが必要で、小数部は切り捨てられます。"
+     },
+     {
+      "type": "p",
+      "text": "算術演算では int より小さい型は int に昇格します。そのため `b = b + 1` はエラーですが、複合代入 `b += 1` は暗黙のキャストが入るので通ります。"
+     },
+     {
+      "type": "code",
+      "text": "int i = 100;\nlong l = i;            // 拡大変換：OK\nint j = (int) 3.9;     // 縮小変換：3（切り捨て）\n\nbyte b = 10;           // 範囲内の定数なので OK\n// b = b + 1;          // エラー：b + 1 は int\nb += 1;                // OK：(byte)(b + 1) と同じ"
+     }
+    ]
+   },
+   {
+    "h": "参照型と値渡し",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "クラスや配列の変数は、オブジェクトそのものではなく**参照**を持ちます。代入すると参照がコピーされ、2つの変数が同じオブジェクトを指します。"
+     },
+     {
+      "type": "p",
+      "text": "メソッドの引数は常に**値渡し**です。参照型の場合は「参照の値」がコピーされるので、呼び出し先でオブジェクトの中身を変えると呼び出し元にも見えますが、変数への再代入は呼び出し元に影響しません。"
+     },
+     {
+      "type": "code",
+      "text": "static void change(int n, StringBuilder sb) {\n    n = 99;            // 呼び出し元には影響しない\n    sb.append(\"!\");    // 同じオブジェクトを変更 → 見える\n    sb = new StringBuilder(\"new\"); // 再代入は影響しない\n}\n\nint n = 1;\nStringBuilder sb = new StringBuilder(\"hi\");\nchange(n, sb);\nSystem.out.println(n + \" \" + sb);   // 1 hi!"
+     }
+    ]
+   },
+   {
+    "h": "ラッパークラスとオートボクシング",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "各プリミティブ型には対応するクラス（`Integer`、`Long`、`Double`、`Character`、`Boolean` など）があり、コレクションにはこちらを入れます。プリミティブとラッパーの変換は自動で行われます（オートボクシング／アンボクシング）。"
+     },
+     {
+      "type": "p",
+      "text": "ボクシングは `Integer.valueOf` を使うため、-128〜127 はキャッシュされた同じオブジェクトになります。ラッパー同士の比較は `==` ではなく `equals` を使います。また、null をアンボクシングすると NullPointerException です。"
+     },
+     {
+      "type": "code",
+      "text": "Integer x = null;\n// int y = x;          // NullPointerException\n\nMap<String, Integer> stock = new HashMap<>();\n// int q = stock.get(\"A001\");   // キーがなければ null → NPE\nint q = stock.getOrDefault(\"A001\", 0);   // 安全"
+     }
+    ]
+   },
+   {
+    "h": "var による型推論（Java 10）",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "ローカル変数は `var` で宣言でき、型は初期化式から推論されます。使えるのはローカル変数と for 文の変数（とラムダの引数）だけで、フィールド・メソッドの引数・戻り値には使えません。"
+     },
+     {
+      "type": "list",
+      "items": [
+       "初期化式が必須（`var x;` はエラー）",
+       "`var x = null;` はエラー（型が決まらない）",
+       "`var a = {1, 2};` はエラー（配列初期化子だけでは型が決まらない）"
+      ]
+     }
+    ]
+   },
+   {
+    "h": "ローカル変数の初期化",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "フィールドと配列要素はデフォルト値で初期化されますが、**ローカル変数は自動では初期化されません**。値が確実に代入されているとコンパイラが判断できない状態で読むとコンパイルエラーです。"
+     },
+     {
+      "type": "code",
+      "text": "class Lot {\n    int qty;            // フィールド：0 で初期化\n    void show() {\n        int count;      // ローカル：未初期化\n        // System.out.println(count);   // コンパイルエラー\n        System.out.println(qty);        // 0\n    }\n}"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "プリミティブは値、参照型は参照を持つ",
+   "引数は常に値渡し（参照型は参照のコピー）",
+   "ラッパーの比較は equals。null のアンボクシングは NPE",
+   "var はローカル変数専用で、初期化が必須"
+  ],
+  "traps": [
+   "`long big = 3_000_000_000;` は int の範囲外でエラー。`L` が必要",
+   "`Integer` の `==` は 127 までは偶然 true になる"
+  ]
+ },
+ {
+  "id": 3,
+  "part": 1,
+  "t": "演算子",
+  "sum": "算術、インクリメント、論理演算と短絡評価、優先順位",
+  "quiz": [
+   1,
+   2,
+   32
+  ],
+  "lead": "演算子そのものは単純ですが、整数除算・後置インクリメント・短絡評価のように「書いた見た目と結果がずれる」箇所があります。",
+  "secs": [
+   {
+    "h": "算術演算子",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "整数同士の `/` は小数部を切り捨て（0方向に丸め）、`%` は剰余です。整数を 0 で割ると `ArithmeticException` ですが、浮動小数点数では例外にならず `Infinity` や `NaN` になります。"
+     },
+     {
+      "type": "code",
+      "text": "System.out.println(7 / 2);     // 3\nSystem.out.println(-7 / 2);    // -3（0方向）\nSystem.out.println(-7 % 2);    // -1（符号は左辺に従う）\nSystem.out.println(7 / 2.0);   // 3.5\nSystem.out.println(1.0 / 0);   // Infinity\n// System.out.println(1 / 0);  // ArithmeticException"
+     }
+    ]
+   },
+   {
+    "h": "インクリメントとデクリメント",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "前置 `++i` は増やしてから値を返し、後置 `i++` は元の値を返してから増やします。`x = x++;` は x を変えません（元の値が代入し直されるため）。"
+     },
+     {
+      "type": "code",
+      "text": "int i = 5;\nint a = i++;   // a = 5, i = 6\nint b = ++i;   // b = 7, i = 7\n\nint x = 1;\nx = x++;\nSystem.out.println(x);   // 1"
+     }
+    ]
+   },
+   {
+    "h": "比較・論理演算子と短絡評価",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`&&` と `||` は**短絡評価**です。`&&` は左辺が false なら右辺を評価せず、`||` は左辺が true なら右辺を評価しません。`&` と `|` は boolean にも使えますが、両辺を必ず評価します。"
+     },
+     {
+      "type": "p",
+      "text": "null チェックを左に置く `s != null && s.isEmpty()` の書き方は、この性質を利用しています。"
+     }
+    ]
+   },
+   {
+    "h": "文字列連結と評価順",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`+` は左から順に評価され、どちらかが String になった時点で文字列連結になります。"
+     },
+     {
+      "type": "code",
+      "text": "System.out.println(1 + 2 + \"A\");   // 3A\nSystem.out.println(\"A\" + 1 + 2);   // A12\nSystem.out.println(\"A\" + (1 + 2)); // A3"
+     }
+    ]
+   },
+   {
+    "h": "優先順位の目安",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "高い順に、単項（`++ -- !` キャスト）→ 乗除 → 加減 → シフト → 比較（` instanceof`）→ 等価（`== !=`）→ `&` → `^` → `|` → `&&` → `||` → 三項 `?:` → 代入。迷う式は括弧を付けて意図を明示するのが実務の作法です。"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "整数除算は切り捨て、整数の0除算は例外",
+   "後置は元の値を返す。x = x++ は x を変えない",
+   "&& || は短絡評価、& | は両辺評価"
+  ],
+  "traps": [
+   "`-7 % 2` は -1（1ではない）",
+   "`0.1 + 0.2 == 0.3` は false。金額計算は BigDecimal を使う"
+  ]
+ },
+ {
+  "id": 4,
+  "part": 1,
+  "t": "文字列",
+  "sum": "Stringの不変性、== と equals、StringBuilder、テキストブロック",
+  "quiz": [
+   0,
+   10,
+   26,
+   27,
+   22
+  ],
+  "lead": "String は最もよく使うクラスですが、不変であることと参照型であることから、比較や連結で独特の注意点があります。",
+  "secs": [
+   {
+    "h": "String は不変",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "String オブジェクトは作成後に中身を変えられません。`concat`、`replace`、`toUpperCase` などは**新しい String を返す**だけなので、結果を変数に代入しないと何も起きません。"
+     },
+     {
+      "type": "code",
+      "text": "String s = \"lot-001\";\ns.toUpperCase();           // 結果を捨てている\nSystem.out.println(s);     // lot-001\ns = s.toUpperCase();\nSystem.out.println(s);     // LOT-001"
+     }
+    ]
+   },
+   {
+    "h": "== と equals",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`==` は同じオブジェクトかどうか、`equals` は内容が同じかどうかを比べます。文字列リテラルは**文字列プール**で共有されるため `\"a\" == \"a\"` は true になりますが、`new String(\"a\")` や実行時に組み立てた文字列は別オブジェクトです。文字列の比較には必ず equals を使います。"
+     },
+     {
+      "type": "code",
+      "text": "String a = \"java\";\nString b = \"java\";\nString c = new String(\"java\");\nSystem.out.println(a == b);        // true（同じリテラル）\nSystem.out.println(a == c);        // false\nSystem.out.println(a.equals(c));   // true\nSystem.out.println(\"JAVA\".equalsIgnoreCase(a)); // true"
+     }
+    ]
+   },
+   {
+    "h": "よく使うメソッド",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "メソッド",
+       "例",
+       "結果"
+      ],
+      "rows": [
+       [
+        "`length()`",
+        "`\"Java\".length()`",
+        "4"
+       ],
+       [
+        "`charAt(i)`",
+        "`\"Java\".charAt(1)`",
+        "'a'"
+       ],
+       [
+        "`substring(b, e)`",
+        "`\"Java\".substring(1, 3)`",
+        "\"av\"（e は含まない）"
+       ],
+       [
+        "`indexOf(s)`",
+        "`\"Java\".indexOf(\"v\")`",
+        "2（なければ -1）"
+       ],
+       [
+        "`contains / startsWith`",
+        "`\"LOT-1\".startsWith(\"LOT\")`",
+        "true"
+       ],
+       [
+        "`strip()`（11）",
+        "`\" a \".strip()`",
+        "\"a\""
+       ],
+       [
+        "`isBlank()`（11）",
+        "`\"  \".isBlank()`",
+        "true"
+       ],
+       [
+        "`split(regex)`",
+        "`\"a,b\".split(\",\")`",
+        "[\"a\", \"b\"]"
+       ],
+       [
+        "`String.join`",
+        "`String.join(\"/\", \"a\", \"b\")`",
+        "\"a/b\""
+       ],
+       [
+        "`repeat(n)`（11）",
+        "`\"-\".repeat(3)`",
+        "\"---\""
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "h": "StringBuilder",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "文字列を何度も連結・編集するときは可変の `StringBuilder` を使います。`append`、`insert`、`reverse`、`delete` は**自分自身を変更して自分自身を返す**ので、メソッドチェーンが書けます。"
+     },
+     {
+      "type": "p",
+      "text": "StringBuilder は `equals` をオーバーライドしていないため、内容比較には `toString()` してから比べます。"
+     },
+     {
+      "type": "code",
+      "text": "StringBuilder sb = new StringBuilder(\"abc\");\nsb.append(\"d\").insert(0, \"[\").append(\"]\");\nSystem.out.println(sb);           // [abcd]\nsb.reverse();\nSystem.out.println(sb);           // ]dcba[\nsb.delete(0, 1);                  // 0〜1未満を削除\nSystem.out.println(sb);           // dcba["
+     }
+    ]
+   },
+   {
+    "h": "テキストブロック（Java 15）",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`\"\"\"` で囲むと複数行の文字列を書けます。開始の `\"\"\"` の直後は改行が必要で、その改行は内容に含まれません。各行に共通するインデントは自動で取り除かれ、閉じる `\"\"\"` の位置もインデントの基準になります。"
+     },
+     {
+      "type": "code",
+      "text": "String sql = \"\"\"\n    SELECT lot_no, status\n      FROM lot\n     WHERE status = 'PASSED'\n    \"\"\";\n// 内容は \"SELECT lot_no, status\\n  FROM lot\\n WHERE ...\\n\""
+     }
+    ]
+   }
+  ],
+  "points": [
+   "String は不変。変換メソッドは新しい String を返す",
+   "文字列の比較は equals",
+   "substring の終了位置は含まない",
+   "大量の連結は StringBuilder"
+  ],
+  "traps": [
+   "`sb1.equals(sb2)` は内容が同じでも false",
+   "`s.split(\".\")` は正規表現なので空配列になる。`\"\\\\.\"` が必要"
+  ]
+ },
+ {
+  "id": 5,
+  "part": 1,
+  "t": "制御構文",
+  "sum": "if、switch文とswitch式、ループ、ラベル付きbreak",
+  "quiz": [
+   8,
+   14,
+   29
+  ],
+  "lead": "分岐と繰り返しです。従来の switch 文と Java 14 の switch 式は見た目が似ていますが、フォールスルーの有無など動きが違います。",
+  "secs": [
+   {
+    "h": "switch 文",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "従来の switch 文で使える型は `byte`・`short`・`char`・`int` とそのラッパー、`String`、`enum` です（long・float・double・boolean は不可）。case には定数しか書けません。"
+     },
+     {
+      "type": "p",
+      "text": "`break` がないと次の case へ**フォールスルー**します。default はどこに書いても、どの case にも当たらないときに実行されます。"
+     },
+     {
+      "type": "code",
+      "text": "int grade = 2;\nswitch (grade) {\n    case 1:\n        System.out.print(\"A\");\n    case 2:\n        System.out.print(\"B\");    // ここから入る\n    case 3:\n        System.out.print(\"C\");\n        break;                    // ここで抜ける\n    default:\n        System.out.print(\"D\");\n}\n// 出力: BC"
+     }
+    ]
+   },
+   {
+    "h": "switch 式（Java 14）",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "アロー `->` 形式はフォールスルーせず、カンマで複数のラベルをまとめられます。switch を**式**として使うと値を返せ、ブロックの中では `yield` で値を返します。式として使う場合はすべての値を網羅する必要があり、通常は default が必要です（enum を全部書けば不要）。"
+     },
+     {
+      "type": "code",
+      "text": "enum Status { RECEIVED, TESTING, PASSED, FAILED }\n\nString label = switch (status) {\n    case RECEIVED, TESTING -> \"判定待ち\";\n    case PASSED -> \"合格\";\n    case FAILED -> {\n        notifyQa();\n        yield \"不合格\";\n    }\n};   // enum を全て網羅しているので default 不要"
+     }
+    ]
+   },
+   {
+    "h": "ループ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`for`、拡張 for（for-each）、`while`、`do-while` があります。do-while は条件を後で判定するため、最低1回は実行されます。拡張 for は配列と `Iterable`（List など）に使えます。"
+     },
+     {
+      "type": "code",
+      "text": "for (int i = 0; i < 3; i++) { /* 0,1,2 */ }\n\nfor (String lot : lots) { System.out.println(lot); }\n\nint n = 10;\ndo {\n    n++;\n} while (n < 5);   // 条件は false だが 1 回実行 → n = 11"
+     }
+    ]
+   },
+   {
+    "h": "break・continue とラベル",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`break` はループを抜け、`continue` は次の繰り返しへ進みます。入れ子のループで外側を制御したいときは、ループにラベルを付けて `break outer;` のように書きます。"
+     },
+     {
+      "type": "code",
+      "text": "outer:\nfor (int i = 0; i < 3; i++) {\n    for (int j = 0; j < 3; j++) {\n        if (j == 1) continue outer;   // 外側の次の i へ\n        System.out.print(i + \"\" + j + \" \");\n    }\n}\n// 出力: 00 10 20"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "switch 文は break がないとフォールスルー",
+   "switch 式はアロー形式・yield・網羅性が必要",
+   "do-while は最低1回実行",
+   "ラベルで外側のループを制御できる"
+  ],
+  "traps": [
+   "switch 文に long は使えない",
+   "`while (false) { }` は到達不能コードでコンパイルエラー"
+  ]
+ },
+ {
+  "id": 6,
+  "part": 1,
+  "t": "配列",
+  "sum": "宣言と初期化、デフォルト値、多次元配列、Arrays",
+  "quiz": [
+   3,
+   30
+  ],
+  "lead": "配列は固定長で、作成時に要素数が決まります。宣言の書き方のバリエーションが多く、試験でもよく問われます。",
+  "secs": [
+   {
+    "h": "宣言と生成",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "次の書き方はすべて正しいです。"
+     },
+     {
+      "type": "code",
+      "text": "int[] a = new int[3];          // 要素数を指定\nint b[] = new int[3];          // C 言語風の位置も可\nint[] c = {1, 2, 3};           // 初期化子（宣言と同時のみ）\nint[] d = new int[]{1, 2, 3};  // 生成と初期化\nint[][] m = new int[2][];      // 2次元目は後で決められる\n\n// int[] e = new int[3]{1, 2, 3};  // エラー：要素数と初期化子は併用不可\n// int[] f; f = {1, 2};            // エラー：初期化子は宣言時のみ"
+     }
+    ]
+   },
+   {
+    "h": "デフォルト値と長さ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "配列の要素はデフォルト値で初期化されます（数値は 0、boolean は false、char は '\\u0000'、参照型は null）。長さは `length` **フィールド**で取得します（String は `length()` メソッド）。範囲外のインデックスは `ArrayIndexOutOfBoundsException` です。"
+     }
+    ]
+   },
+   {
+    "h": "多次元配列",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "Java の多次元配列は「配列の配列」なので、行ごとに長さが違ってもかまいません（ジャグ配列）。"
+     },
+     {
+      "type": "code",
+      "text": "int[][] tri = new int[3][];\ntri[0] = new int[1];\ntri[1] = new int[2];\ntri[2] = new int[3];\nSystem.out.println(tri[2].length);   // 3"
+     }
+    ]
+   },
+   {
+    "h": "Arrays ユーティリティ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "配列を `println` すると `[I@1b6d3586` のような表示になるので、中身を見るには `Arrays.toString` を使います。"
+     },
+     {
+      "type": "code",
+      "text": "int[] n = {3, 1, 2};\nArrays.sort(n);\nSystem.out.println(Arrays.toString(n));   // [1, 2, 3]\nint[] big = Arrays.copyOf(n, 5);           // [1, 2, 3, 0, 0]\nSystem.out.println(Arrays.equals(n, new int[]{1, 2, 3}));  // true\n\nList<String> list = Arrays.asList(\"a\", \"b\");\nlist.set(0, \"z\");     // OK\n// list.add(\"c\");     // UnsupportedOperationException（固定長）"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "配列は固定長。要素はデフォルト値で初期化",
+   "要素数指定と初期化子は併用不可",
+   "長さは length フィールド",
+   "表示は Arrays.toString"
+  ],
+  "traps": [
+   "`arr1.equals(arr2)` は参照比較。内容比較は `Arrays.equals`",
+   "`Arrays.asList` の結果に add すると例外"
+  ]
+ },
+ {
+  "id": 7,
+  "part": 2,
+  "t": "クラスとオブジェクト",
+  "sum": "コンストラクタ、static、アクセス修飾子、オーバーロード",
+  "quiz": [],
+  "lead": "クラスはデータ（フィールド）と処理（メソッド）をまとめた設計図です。コンストラクタと static の扱いが、この章の要点です。",
+  "secs": [
+   {
+    "h": "フィールド・メソッド・コンストラクタ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "コンストラクタはクラス名と同じ名前で、戻り値の型を書きません。コンストラクタを1つも書かないと引数なしの**デフォルトコンストラクタ**が自動で作られますが、1つでも書くと作られません。"
+     },
+     {
+      "type": "p",
+      "text": "`this(...)` で同じクラスの別のコンストラクタを呼べます。ただしコンストラクタの先頭に書く必要があります。"
+     },
+     {
+      "type": "code",
+      "text": "public class Lot {\n    private final String lotNo;\n    private int qty;\n\n    public Lot(String lotNo) {\n        this(lotNo, 0);          // 別のコンストラクタを呼ぶ（先頭のみ）\n    }\n    public Lot(String lotNo, int qty) {\n        this.lotNo = lotNo;      // this でフィールドと引数を区別\n        this.qty = qty;\n    }\n    public int getQty() { return qty; }\n}\n\n// Lot l = new Lot();   // エラー：引数なしコンストラクタはない"
+     }
+    ]
+   },
+   {
+    "h": "static メンバ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`static` を付けたフィールドとメソッドはクラスに1つだけ存在し、インスタンスを作らずに `クラス名.メンバ` で使えます。static メソッドの中からは、インスタンスのフィールドやメソッドを直接参照できません（どのインスタンスか決まらないため）。"
+     },
+     {
+      "type": "code",
+      "text": "class Counter {\n    static int total = 0;   // 全インスタンスで共有\n    int mine = 0;\n\n    Counter() { total++; mine++; }\n\n    static void show() {\n        System.out.println(total);\n        // System.out.println(mine);   // エラー\n    }\n}"
+     }
+    ]
+   },
+   {
+    "h": "アクセス修飾子",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "修飾子",
+       "同じクラス",
+       "同じパッケージ",
+       "サブクラス",
+       "どこからでも"
+      ],
+      "rows": [
+       [
+        "`public`",
+        "○",
+        "○",
+        "○",
+        "○"
+       ],
+       [
+        "`protected`",
+        "○",
+        "○",
+        "○",
+        "—"
+       ],
+       [
+        "なし（パッケージ）",
+        "○",
+        "○",
+        "—",
+        "—"
+       ],
+       [
+        "`private`",
+        "○",
+        "—",
+        "—",
+        "—"
+       ]
+      ]
+     },
+     {
+      "type": "p",
+      "text": "フィールドは private にして、必要な操作だけをメソッドで公開するのが基本です（カプセル化）。1つのファイルに public なトップレベルクラスは1つまでで、ファイル名と一致させます。"
+     }
+    ]
+   },
+   {
+    "h": "オーバーロード",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "同じ名前で引数の**型・数・順序**が違うメソッドを複数定義できます。戻り値の型だけが違うものは定義できません。呼び出し時は、完全一致 → 拡大変換 → オートボクシング → 可変長引数 の順に候補が選ばれます。"
+     },
+     {
+      "type": "code",
+      "text": "static void p(long x)    { System.out.println(\"long\"); }\nstatic void p(Integer x) { System.out.println(\"Integer\"); }\nstatic void p(int... x)  { System.out.println(\"varargs\"); }\n\np(1);   // long（拡大変換がボクシングより優先）"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "コンストラクタを1つでも書くとデフォルトコンストラクタは作られない",
+   "this(...) はコンストラクタの先頭のみ",
+   "static からインスタンスメンバは直接使えない",
+   "オーバーロードは引数で区別。戻り値だけの違いは不可"
+  ],
+  "traps": [
+   "`void Lot() {}` と戻り値を書くとコンストラクタではなく普通のメソッドになる"
+  ]
+ },
+ {
+  "id": 8,
+  "part": 2,
+  "t": "継承とポリモーフィズム",
+  "sum": "extends、super、オーバーライドの規則、抽象クラス",
+  "quiz": [
+   4,
+   28
+  ],
+  "lead": "継承で既存クラスを拡張し、ポリモーフィズムで同じ呼び出しを型ごとに振る舞い分けます。「コンパイル時の型」と「実行時の型」を区別できるかが鍵です。",
+  "secs": [
+   {
+    "h": "継承とコンストラクタ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "Java のクラス継承は単一継承で、`extends` の後には1つのクラスしか書けません。コンストラクタは継承されません。サブクラスのコンストラクタの先頭には、明示しなければ `super()` が暗黙に入ります。親に引数なしコンストラクタがないとコンパイルエラーになります。"
+     },
+     {
+      "type": "code",
+      "text": "class Material {\n    Material(String code) { System.out.print(\"M\"); }\n}\nclass Reagent extends Material {\n    Reagent() {\n        super(\"R001\");          // 必須：親に引数なしコンストラクタがない\n        System.out.print(\"R\");\n    }\n}\nnew Reagent();   // 出力: MR（親から順に実行）"
+     }
+    ]
+   },
+   {
+    "h": "オーバーライドの規則",
+    "blocks": [
+     {
+      "type": "list",
+      "items": [
+       "メソッド名と引数リストが同じ",
+       "戻り値は同じ型か、そのサブクラス（共変戻り値）",
+       "アクセス修飾子は同じか、より広く（public を protected にはできない）",
+       "チェック例外は同じか、より狭く・少なく（新しいチェック例外は追加できない）",
+       "`private`・`static`・`final` メソッドはオーバーライドされない"
+      ]
+     },
+     {
+      "type": "p",
+      "text": "`@Override` を付けると、規則違反やメソッド名の打ち間違いをコンパイラが検出してくれます。"
+     }
+    ]
+   },
+   {
+    "h": "ポリモーフィズム",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "親クラス型の変数にはサブクラスのインスタンスを代入できます。このとき"
+     },
+     {
+      "type": "list",
+      "items": [
+       "**呼べるメソッド**は変数の宣言型で決まる（コンパイル時）",
+       "**実行されるメソッド**は実体のクラスのオーバーライドが選ばれる（実行時）",
+       "**フィールドと static メソッド**は宣言型で決まる（オーバーライドではなく隠蔽）"
+      ]
+     },
+     {
+      "type": "code",
+      "text": "class A {\n    String name = \"A\";\n    String hello() { return \"A\"; }\n    static String s() { return \"A\"; }\n}\nclass B extends A {\n    String name = \"B\";\n    @Override String hello() { return \"B\"; }\n    static String s() { return \"B\"; }\n}\n\nA x = new B();\nSystem.out.println(x.hello());  // B（実体で決まる）\nSystem.out.println(x.name);     // A（フィールドは宣言型）\nSystem.out.println(x.s());      // A（static は宣言型）"
+     }
+    ]
+   },
+   {
+    "h": "キャストと instanceof",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "親クラス型からサブクラス型へはキャストが必要です。実体が違う型だと実行時に `ClassCastException` になるので、`instanceof` で確認してからキャストします（Java 16 以降はパターンマッチングで1行にできます。17章参照）。継承関係のない型へのキャストはコンパイルエラーです。"
+     }
+    ]
+   },
+   {
+    "h": "抽象クラスと final",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`abstract` クラスはインスタンス化できず、抽象メソッド（本体なし）を持てます。サブクラスはすべての抽象メソッドを実装するか、自分も abstract になる必要があります。"
+     },
+     {
+      "type": "p",
+      "text": "`final` クラスは継承できず（String など）、`final` メソッドはオーバーライドできません。"
+     },
+     {
+      "type": "code",
+      "text": "abstract class Test {\n    abstract boolean judge(double value);   // 本体なし\n    String result(double v) { return judge(v) ? \"適合\" : \"不適合\"; }\n}\nclass PhTest extends Test {\n    @Override boolean judge(double v) { return v >= 6.5 && v <= 7.5; }\n}"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "コンストラクタの先頭には暗黙の super()",
+   "オーバーライドはアクセスを狭められず、チェック例外を広げられない",
+   "メソッドは実体、フィールドと static は宣言型で決まる",
+   "抽象クラスは new できない"
+  ],
+  "traps": [
+   "親に引数ありコンストラクタだけがあると、子の暗黙 super() がエラー",
+   "static メソッドに @Override を付けるとエラー"
+  ]
+ },
+ {
+  "id": 9,
+  "part": 2,
+  "t": "インタフェース",
+  "sum": "default・static・privateメソッド、多重実装、関数型インタフェース",
+  "quiz": [
+   31
+  ],
+  "lead": "インタフェースは「何ができるか」を約束する型です。Java 8 以降は実装を持つメソッドも書けるようになり、抽象クラスとの使い分けが変わりました。",
+  "secs": [
+   {
+    "h": "定義できるもの",
+    "blocks": [
+     {
+      "type": "list",
+      "items": [
+       "抽象メソッド：暗黙に `public abstract`",
+       "定数：フィールドは暗黙に `public static final`",
+       "`default` メソッド（Java 8）：実装を持ち、実装クラスで上書きできる",
+       "`static` メソッド（Java 8）：`インタフェース名.m()` で呼ぶ。実装クラス経由では呼べない",
+       "`private` メソッド（Java 9）：default メソッドの共通処理用"
+      ]
+     },
+     {
+      "type": "code",
+      "text": "interface Approvable {\n    int MAX_LEVEL = 3;                 // public static final\n\n    void approve(String user);         // public abstract\n\n    default boolean canApprove(String user) {\n        return !isSystem(user);\n    }\n    private boolean isSystem(String u) { return u.startsWith(\"sys\"); }\n\n    static Approvable noop() { return u -> {}; }\n}"
+     }
+    ]
+   },
+   {
+    "h": "実装と多重実装",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "クラスは `implements` で複数のインタフェースを実装できます。インタフェースのメソッドは public なので、実装側も public にする必要があります（省略するとアクセスを狭めたことになりエラー）。"
+     },
+     {
+      "type": "p",
+      "text": "2つのインタフェースが同じシグネチャの default メソッドを持つ場合、実装クラスでオーバーライドしないとコンパイルエラーです。特定の実装を呼びたいときは `A.super.m()` と書きます。なお、親クラスのメソッドとインタフェースの default が衝突した場合はクラス側が優先されます。"
+     },
+     {
+      "type": "code",
+      "text": "interface A { default String m() { return \"A\"; } }\ninterface B { default String m() { return \"B\"; } }\n\nclass C implements A, B {\n    @Override\n    public String m() { return A.super.m() + B.super.m(); }   // \"AB\"\n}"
+     }
+    ]
+   },
+   {
+    "h": "抽象クラスとの使い分け",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "",
+       "抽象クラス",
+       "インタフェース"
+      ],
+      "rows": [
+       [
+        "継承・実装の数",
+        "1つだけ",
+        "複数可"
+       ],
+       [
+        "インスタンスフィールド",
+        "持てる",
+        "持てない（定数のみ）"
+       ],
+       [
+        "コンストラクタ",
+        "持てる",
+        "持てない"
+       ],
+       [
+        "向いている用途",
+        "共通の状態と処理を持つ「〜の一種」",
+        "能力・役割の約束「〜できる」"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "h": "関数型インタフェース",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "抽象メソッドを1つだけ持つインタフェースを**関数型インタフェース**と呼び、ラムダ式やメソッド参照を代入できます（14章）。`@FunctionalInterface` を付けると、抽象メソッドが1つでない場合にコンパイルエラーにしてくれます。default・static メソッドや、`equals` など Object のメソッドの再宣言は数に入りません。"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "フィールドは public static final、抽象メソッドは public abstract",
+   "default・static（8）、private（9）メソッドが書ける",
+   "default の衝突は実装クラスでオーバーライド必須",
+   "抽象メソッド1つ＝関数型インタフェース"
+  ],
+  "traps": [
+   "実装メソッドに public を付け忘れるとコンパイルエラー",
+   "インタフェースの static メソッドは実装クラス名や変数経由では呼べない"
+  ]
+ },
+ {
+  "id": 10,
+  "part": 2,
+  "t": "例外処理",
+  "sum": "チェック例外と非チェック例外、try-catch-finally、try-with-resources",
+  "quiz": [
+   5,
+   7
+  ],
+  "lead": "例外は「起きうる失敗」をコードで扱う仕組みです。どの例外を処理しなければならないかはコンパイラが決めるので、階層を覚えることが近道です。",
+  "secs": [
+   {
+    "h": "例外の階層",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "すべての例外は `Throwable` を継承します。"
+     },
+     {
+      "type": "list",
+      "items": [
+       "`Error`：OutOfMemoryError など、プログラムで回復すべきでない問題",
+       "`Exception` のうち `RuntimeException` 以外：**チェック例外**。catch するか throws で宣言しないとコンパイルエラー（IOException、SQLException など）",
+       "`RuntimeException` とそのサブクラス：**非チェック例外**。処理は強制されない（NullPointerException、IllegalArgumentException など）"
+      ]
+     }
+    ]
+   },
+   {
+    "h": "try-catch-finally",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "catch は上から順に照合されます。親クラスの catch を先に書くと、後ろのサブクラスの catch に到達できずコンパイルエラーです。`finally` は例外の有無や return に関係なく実行されます。"
+     },
+     {
+      "type": "p",
+      "text": "マルチキャッチ `catch (A | B e)` でまとめて受けられますが、継承関係にある例外は並べられません。"
+     },
+     {
+      "type": "code",
+      "text": "try {\n    int qty = Integer.parseInt(input);\n    register(qty);\n} catch (NumberFormatException e) {\n    System.out.println(\"数値を入力してください\");\n} catch (IllegalStateException | IllegalArgumentException e) {\n    System.out.println(\"登録できません: \" + e.getMessage());\n} finally {\n    System.out.println(\"終了\");   // 必ず実行\n}"
+     }
+    ]
+   },
+   {
+    "h": "try-with-resources",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`AutoCloseable` を実装したリソース（ファイル、DB接続など）は、try の括弧内で宣言すると自動で close されます。複数ある場合は**宣言の逆順**で close されます。close 中の例外は、本体の例外に「抑制された例外」として付加されます。"
+     },
+     {
+      "type": "code",
+      "text": "try (Connection con = DriverManager.getConnection(url);\n     PreparedStatement ps = con.prepareStatement(sql)) {\n    ps.setString(1, lotNo);\n    ps.executeUpdate();\n}   // ps → con の順に close される"
+     }
+    ]
+   },
+   {
+    "h": "throw・throws と独自例外",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`throw` は例外を投げる文、`throws` はメソッドが投げうるチェック例外の宣言です。業務上の失敗には独自の例外クラスを作ると、呼び出し側で意味のある処理ができます。"
+     },
+     {
+      "type": "code",
+      "text": "public class DuplicateLotException extends RuntimeException {\n    public DuplicateLotException(String lotNo) {\n        super(\"ロット番号が重複しています: \" + lotNo);\n    }\n}\n\nvoid register(Lot lot) {\n    if (exists(lot.lotNo())) throw new DuplicateLotException(lot.lotNo());\n    // ...\n}\n\nList<String> load(Path p) throws IOException {   // チェック例外を宣言\n    return Files.readAllLines(p);\n}"
+     }
+    ]
+   },
+   {
+    "h": "よく出る例外",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "例外",
+       "種類",
+       "主な原因"
+      ],
+      "rows": [
+       [
+        "`NullPointerException`",
+        "非チェック",
+        "null のメンバにアクセス"
+       ],
+       [
+        "`ArrayIndexOutOfBoundsException`",
+        "非チェック",
+        "配列の範囲外"
+       ],
+       [
+        "`ClassCastException`",
+        "非チェック",
+        "不正なダウンキャスト"
+       ],
+       [
+        "`NumberFormatException`",
+        "非チェック",
+        "数値でない文字列の変換（IllegalArgumentException の子）"
+       ],
+       [
+        "`ArithmeticException`",
+        "非チェック",
+        "整数の0除算"
+       ],
+       [
+        "`IOException`",
+        "チェック",
+        "入出力の失敗"
+       ],
+       [
+        "`SQLException`",
+        "チェック",
+        "DBアクセスの失敗"
+       ]
+      ]
+     }
+    ]
+   }
+  ],
+  "points": [
+   "RuntimeException 以外の Exception はチェック例外",
+   "catch はサブクラスを先に書く",
+   "finally は return があっても実行される",
+   "try-with-resources は宣言の逆順で close"
+  ],
+  "traps": [
+   "`catch (Exception e)` の後に `catch (IOException e)` を書くとエラー",
+   "マルチキャッチの変数 e は暗黙に final で再代入できない"
+  ]
+ },
+ {
+  "id": 11,
+  "part": 3,
+  "t": "コレクション",
+  "sum": "List・Set・Map、不変コレクション、並べ替え",
+  "quiz": [
+   6,
+   11,
+   18
+  ],
+  "lead": "複数のデータを扱う標準の入れ物です。インタフェース（List、Set、Map）と実装クラスを分けて理解すると、使い分けが見えてきます。",
+  "secs": [
+   {
+    "h": "全体像",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "インタフェース",
+       "特徴",
+       "主な実装"
+      ],
+      "rows": [
+       [
+        "`List`",
+        "順序あり、重複可、インデックスでアクセス",
+        "ArrayList、LinkedList"
+       ],
+       [
+        "`Set`",
+        "重複なし",
+        "HashSet（順序なし）、LinkedHashSet（挿入順）、TreeSet（ソート順）"
+       ],
+       [
+        "`Map`",
+        "キーと値の組、キーは重複なし",
+        "HashMap、LinkedHashMap、TreeMap"
+       ],
+       [
+        "`Deque`",
+        "両端からの出し入れ（キュー・スタック）",
+        "ArrayDeque"
+       ]
+      ]
+     },
+     {
+      "type": "p",
+      "text": "変数はインタフェース型で宣言するのが基本です：`List lots = new ArrayList<>();`"
+     }
+    ]
+   },
+   {
+    "h": "List の操作",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`List` の `remove` には、インデックス指定の `remove(int)` と値指定の `remove(Object)` があり、int を渡すとインデックス版が選ばれます。"
+     },
+     {
+      "type": "code",
+      "text": "List<Integer> nums = new ArrayList<>(List.of(10, 20, 30));\nnums.add(40);              // [10, 20, 30, 40]\nnums.add(0, 5);            // [5, 10, 20, 30, 40]\nnums.remove(1);            // インデックス1 → [5, 20, 30, 40]\nnums.remove(Integer.valueOf(30));   // 値30 → [5, 20, 40]\nnums.removeIf(n -> n > 10);         // 条件で削除 → [5]"
+     }
+    ]
+   },
+   {
+    "h": "Map の操作",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "Map は `get` でキーがないと null を返します。`getOrDefault`、`putIfAbsent`、`merge`、`computeIfAbsent` を使うと null チェックを減らせます。"
+     },
+     {
+      "type": "code",
+      "text": "Map<String, Integer> stock = new HashMap<>();\nstock.put(\"A001\", 10);\nstock.merge(\"A001\", 5, Integer::sum);     // 15\nstock.merge(\"B002\", 3, Integer::sum);     // 新規に 3\nint q = stock.getOrDefault(\"C003\", 0);    // 0\n\nfor (Map.Entry<String, Integer> e : stock.entrySet()) {\n    System.out.println(e.getKey() + \"=\" + e.getValue());\n}"
+     }
+    ]
+   },
+   {
+    "h": "equals と hashCode",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "HashSet や HashMap は、まず `hashCode` で格納場所を決め、次に `equals` で同一性を判定します。自作クラスをキーや Set の要素にするなら、**equals と hashCode を必ずセットでオーバーライド**します。equals が true の2つのオブジェクトは、同じ hashCode を返さなければなりません。record はこの2つを自動生成してくれます。"
+     }
+    ]
+   },
+   {
+    "h": "不変コレクション",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "作り方",
+       "要素の変更",
+       "追加・削除",
+       "null"
+      ],
+      "rows": [
+       [
+        "`List.of(...)`（9）",
+        "×",
+        "×",
+        "不可（NPE）"
+       ],
+       [
+        "`Arrays.asList(...)`",
+        "○（set）",
+        "×",
+        "可"
+       ],
+       [
+        "`Collections.unmodifiableList(x)`",
+        "×",
+        "×",
+        "元のリスト次第。元を変えると見え方も変わる（ビュー）"
+       ],
+       [
+        "`List.copyOf(x)`（10）",
+        "×",
+        "×",
+        "不可"
+       ]
+      ]
+     },
+     {
+      "type": "p",
+      "text": "変更しようとすると `UnsupportedOperationException` です。コンパイルは通るので注意します。"
+     }
+    ]
+   },
+   {
+    "h": "並べ替え",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "要素自身が順序を持つなら `Comparable`（`compareTo`）を実装し、外から順序を与えるなら `Comparator` を使います。Comparator はメソッドを組み合わせて書けます。"
+     },
+     {
+      "type": "code",
+      "text": "lots.sort(Comparator.comparing(Lot::expiresOn)        // 期限の早い順\n                   .thenComparing(Lot::lotNo));        // 同じなら番号順\n\nlots.sort(Comparator.comparing(Lot::expiresOn).reversed());   // 遅い順"
+     }
+    ]
+   },
+   {
+    "h": "反復中の削除",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "拡張 for で回しながら `list.remove` すると `ConcurrentModificationException` が発生します。`removeIf` か `Iterator.remove` を使います。"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "変数はインタフェース型で宣言",
+   "remove(int) と remove(Object) の違い",
+   "Hash 系に入れるクラスは equals と hashCode をセットで",
+   "List.of は不変・null 不可"
+  ],
+  "traps": [
+   "`List.of(1, null)` は NullPointerException",
+   "HashMap の反復順序は保証されない。必要なら LinkedHashMap か TreeMap"
+  ]
+ },
+ {
+  "id": 12,
+  "part": 3,
+  "t": "ジェネリクス",
+  "sum": "型パラメータ、ワイルドカード、型消去",
+  "quiz": [],
+  "lead": "ジェネリクスは「何の入れ物か」を型で表し、キャストなしで安全に扱えるようにする仕組みです。ワイルドカードは API を読むときに必ず出てきます。",
+  "secs": [
+   {
+    "h": "型パラメータ",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "クラスやメソッドに型パラメータ `` を付けると、使う側で型を決められます。右辺の型引数はダイヤモンド演算子 `<>` で省略できます。"
+     },
+     {
+      "type": "code",
+      "text": "class Result<T> {\n    private final T value;\n    private final String error;\n    private Result(T v, String e) { value = v; error = e; }\n\n    static <T> Result<T> ok(T v)        { return new Result<>(v, null); }\n    static <T> Result<T> fail(String e) { return new Result<>(null, e); }\n    boolean isOk() { return error == null; }\n    T get() { return value; }\n}\n\nResult<Lot> r = Result.ok(lot);\nLot l = r.get();     // キャスト不要"
+     }
+    ]
+   },
+   {
+    "h": "ジェネリクスは不変",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`Integer` は `Number` のサブクラスですが、`List` は `List` のサブタイプではありません。もし代入できると、Number 型として Double を追加できてしまい、型の安全性が崩れるためです。"
+     },
+     {
+      "type": "code",
+      "text": "List<Integer> ints = new ArrayList<>();\n// List<Number> nums = ints;          // コンパイルエラー\nList<? extends Number> nums = ints;   // OK（読み取り専用として）"
+     }
+    ]
+   },
+   {
+    "h": "ワイルドカード",
+    "blocks": [
+     {
+      "type": "list",
+      "items": [
+       "`? extends T`（上限境界）：T かそのサブクラスのどれか。**取り出す**ときは T として扱えるが、null 以外は**追加できない**",
+       "`? super T`（下限境界）：T かその親クラスのどれか。T を**追加できる**が、取り出すと Object 型"
+      ]
+     },
+     {
+      "type": "p",
+      "text": "覚え方は PECS（Producer Extends, Consumer Super）：データを出してくれる引数は extends、受け取ってくれる引数は super です。"
+     },
+     {
+      "type": "code",
+      "text": "static double sum(List<? extends Number> list) {   // 読むだけ\n    double s = 0;\n    for (Number n : list) s += n.doubleValue();\n    return s;\n}\nstatic void fill(List<? super Integer> list) {      // 書くだけ\n    list.add(1);\n    list.add(2);\n}\n\nsum(List.of(1, 2.5));          // List<Integer> も List<Double> も渡せる\nfill(new ArrayList<Number>()); // List<Number> や List<Object> に書ける"
+     }
+    ]
+   },
+   {
+    "h": "型消去と制約",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "型引数の情報はコンパイル時にだけ使われ、実行時には消えます（型消去）。そのため次のことはできません。"
+     },
+     {
+      "type": "list",
+      "items": [
+       "プリミティブ型を型引数にする（`List` は不可。`List` を使う）",
+       "`new T()` や `new T[10]`",
+       "`obj instanceof List`（`List` なら可）"
+      ]
+     }
+    ]
+   }
+  ],
+  "points": [
+   "`<>` で右辺の型引数を省略",
+   "List は List ではない",
+   "読むなら extends、書くなら super（PECS）",
+   "型引数にプリミティブは使えない"
+  ],
+  "traps": [
+   "`List` に `add(1)` はコンパイルエラー"
+  ]
+ },
+ {
+  "id": 13,
+  "part": 3,
+  "t": "日付と時刻",
+  "sum": "LocalDate・LocalDateTime、Period・Duration、フォーマット",
+  "quiz": [],
+  "lead": "Java 8 で導入された java.time パッケージを使います。すべて不変クラスで、古い Date・Calendar の問題点（可変、月が0始まり）が解消されています。",
+  "secs": [
+   {
+    "h": "主なクラス",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "クラス",
+       "表すもの",
+       "例"
+      ],
+      "rows": [
+       [
+        "`LocalDate`",
+        "日付",
+        "2026-10-07"
+       ],
+       [
+        "`LocalTime`",
+        "時刻",
+        "09:30"
+       ],
+       [
+        "`LocalDateTime`",
+        "日付と時刻（タイムゾーンなし）",
+        "2026-10-07T09:30"
+       ],
+       [
+        "`ZonedDateTime`",
+        "タイムゾーン付き",
+        "2026-10-07T09:30+09:00[Asia/Tokyo]"
+       ],
+       [
+        "`Instant`",
+        "UTC の時点（タイムスタンプ）",
+        "2026-10-07T00:30:00Z"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "h": "生成と計算",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "月は 1 始まりです。`plusDays` などは不変クラスなので**新しいオブジェクトを返します**。結果を代入しないと元の値のままです。"
+     },
+     {
+      "type": "code",
+      "text": "LocalDate received = LocalDate.of(2026, 10, 7);\nLocalDate expires = received.plusMonths(6);          // 2027-04-07\nreceived.plusDays(1);                                 // 捨てている（変化なし）\n\nboolean expired = expires.isBefore(LocalDate.now());\nLocalDate monthEnd = received.withDayOfMonth(received.lengthOfMonth());"
+     }
+    ]
+   },
+   {
+    "h": "期間の計算",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "日付の差は `Period`（年・月・日）、時間の差は `Duration`（秒・ナノ秒）で表します。単純な日数は `ChronoUnit.DAYS.between` が便利です。"
+     },
+     {
+      "type": "code",
+      "text": "long days = ChronoUnit.DAYS.between(LocalDate.now(), expires);   // 期限まで何日\nPeriod p = Period.between(received, expires);    // P6M\nDuration d = Duration.ofHours(36);               // PT36H"
+     }
+    ]
+   },
+   {
+    "h": "フォーマットと解析",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`DateTimeFormatter` で文字列との変換を行います。パターン文字は大文字小文字で意味が変わります（`MM` は月、`mm` は分）。解析に失敗すると `DateTimeParseException` です。"
+     },
+     {
+      "type": "code",
+      "text": "DateTimeFormatter f = DateTimeFormatter.ofPattern(\"yyyy/MM/dd\");\nString s = received.format(f);                       // 2026/10/07\nLocalDate d = LocalDate.parse(\"2026/12/01\", f);\nLocalDate iso = LocalDate.parse(\"2026-12-01\");       // ISO 形式はそのまま"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "java.time のクラスは不変",
+   "月は1始まり",
+   "日付の差は Period、時間の差は Duration",
+   "MM は月、mm は分"
+  ],
+  "traps": [
+   "`LocalDate.of(2026, 2, 30)` は DateTimeException",
+   "LocalDateTime にはタイムゾーンがない。時点の記録には Instant や ZonedDateTime"
+  ]
+ },
+ {
+  "id": 14,
+  "part": 4,
+  "t": "ラムダ式と関数型インタフェース",
+  "sum": "ラムダの構文、標準の関数型インタフェース、メソッド参照",
+  "quiz": [
+   23
+  ],
+  "lead": "ラムダ式は「処理そのもの」を値として渡す書き方です。Stream API を使いこなす前提になるので、ここで型との対応をしっかり押さえます。",
+  "secs": [
+   {
+    "h": "ラムダ式の構文",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "ラムダ式は関数型インタフェースの実装を短く書いたものです。引数の型は推論でき、引数が1つなら括弧も省略できます。本体が1つの式なら `{}` と `return` を省けます。"
+     },
+     {
+      "type": "code",
+      "text": "Comparator<String> c1 = (String a, String b) -> { return a.compareTo(b); };\nComparator<String> c2 = (a, b) -> a.compareTo(b);    // 同じ意味\nPredicate<String> empty = s -> s.isEmpty();           // 引数1つは括弧省略可\nRunnable r = () -> System.out.println(\"run\");         // 引数なし"
+     }
+    ]
+   },
+   {
+    "h": "標準の関数型インタフェース",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "インタフェース",
+       "メソッド",
+       "形",
+       "用途の例"
+      ],
+      "rows": [
+       [
+        "`Function`",
+        "`apply`",
+        "T → R",
+        "変換（map）"
+       ],
+       [
+        "`Predicate`",
+        "`test`",
+        "T → boolean",
+        "判定（filter）"
+       ],
+       [
+        "`Consumer`",
+        "`accept`",
+        "T → なし",
+        "出力（forEach）"
+       ],
+       [
+        "`Supplier`",
+        "`get`",
+        "なし → T",
+        "生成（orElseGet）"
+       ],
+       [
+        "`UnaryOperator`",
+        "`apply`",
+        "T → T",
+        "同じ型への変換"
+       ],
+       [
+        "`BinaryOperator`",
+        "`apply`",
+        "(T, T) → T",
+        "集約（reduce）"
+       ],
+       [
+        "`BiFunction`",
+        "`apply`",
+        "(T, U) → R",
+        "2引数の変換"
+       ]
+      ]
+     },
+     {
+      "type": "p",
+      "text": "プリミティブ用の `IntPredicate`、`ToIntFunction` などもあり、ボクシングを避けられます。"
+     }
+    ]
+   },
+   {
+    "h": "メソッド参照",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "既存のメソッドを呼ぶだけのラムダは `::` で短く書けます。4つの形があります。"
+     },
+     {
+      "type": "code",
+      "text": "Function<String, Integer> parse = Integer::parseInt;      // static メソッド\nConsumer<String> print = System.out::println;              // 特定のオブジェクトのメソッド\nFunction<String, Integer> len = String::length;            // 任意のオブジェクト（第1引数）のメソッド\nSupplier<List<String>> make = ArrayList::new;              // コンストラクタ"
+     }
+    ]
+   },
+   {
+    "h": "実質的 final",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "ラムダ式の中から参照するローカル変数は、final か**実質的に final**（宣言後に再代入していない）でなければなりません。フィールドはこの制約を受けません。"
+     },
+     {
+      "type": "code",
+      "text": "int limit = 10;\nPredicate<Integer> over = n -> n > limit;   // OK\n// limit = 20;   // ここで再代入すると、上のラムダがコンパイルエラーになる"
+     }
+    ]
+   },
+   {
+    "h": "関数の合成",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "関数型インタフェースの default メソッドで処理を組み合わせられます。"
+     },
+     {
+      "type": "code",
+      "text": "Function<Integer, Integer> plus1 = x -> x + 1;\nFunction<Integer, Integer> times2 = x -> x * 2;\nplus1.andThen(times2).apply(3);   // (3+1)*2 = 8\nplus1.compose(times2).apply(3);   // 3*2+1 = 7\n\nPredicate<Lot> passed = l -> l.status() == LotStatus.PASSED;\nPredicate<Lot> expired = l -> l.expiresOn().isBefore(LocalDate.now());\nPredicate<Lot> usable = passed.and(expired.negate());"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "ラムダ＝関数型インタフェースの実装",
+   "Function / Predicate / Consumer / Supplier の形を覚える",
+   "メソッド参照は4種類",
+   "参照するローカル変数は実質的 final"
+  ],
+  "traps": [
+   "ラムダの引数名を外側のローカル変数と同じにするとコンパイルエラー"
+  ]
+ },
+ {
+  "id": 15,
+  "part": 4,
+  "t": "Stream API",
+  "sum": "生成・中間操作・終端操作、遅延評価、Collectors",
+  "quiz": [
+   15,
+   16,
+   19
+  ],
+  "lead": "Stream はコレクションの要素に対する処理を「何をしたいか」で宣言的に書く仕組みです。for 文で書いていた集計がほぼ置き換えられます。",
+  "secs": [
+   {
+    "h": "3つの段階",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "Stream の処理は「生成 → 中間操作（0個以上）→ 終端操作（1個）」で構成されます。中間操作は**遅延評価**で、終端操作が呼ばれるまで実行されません。また Stream は一度しか使えず、終端操作の後に再利用すると `IllegalStateException` です。元のコレクションは変更されません。"
+     },
+     {
+      "type": "code",
+      "text": "List<String> passedLots = lots.stream()               // 生成\n    .filter(l -> l.status() == LotStatus.PASSED)       // 中間\n    .sorted(Comparator.comparing(Lot::expiresOn))      // 中間\n    .map(Lot::lotNo)                                   // 中間\n    .toList();                                         // 終端（Java 16）"
+     }
+    ]
+   },
+   {
+    "h": "生成",
+    "blocks": [
+     {
+      "type": "code",
+      "text": "list.stream();\nStream.of(\"a\", \"b\", \"c\");\nArrays.stream(new int[]{1, 2, 3});     // IntStream\nIntStream.range(0, 5);                 // 0〜4（終端を含まない）\nIntStream.rangeClosed(1, 5);           // 1〜5\nStream.iterate(1, n -> n * 2).limit(5);   // 1, 2, 4, 8, 16"
+     }
+    ]
+   },
+   {
+    "h": "主な中間操作",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "操作",
+       "内容"
+      ],
+      "rows": [
+       [
+        "`filter(Predicate)`",
+        "条件に合う要素だけ残す"
+       ],
+       [
+        "`map(Function)`",
+        "要素を変換する"
+       ],
+       [
+        "`flatMap(Function)`",
+        "要素を Stream に変換して平らにつなぐ"
+       ],
+       [
+        "`sorted()` / `sorted(Comparator)`",
+        "並べ替え"
+       ],
+       [
+        "`distinct()`",
+        "重複除去（equals で判定）"
+       ],
+       [
+        "`limit(n)` / `skip(n)`",
+        "先頭 n 件 / 先頭 n 件を飛ばす"
+       ],
+       [
+        "`peek(Consumer)`",
+        "途中の要素を覗く（デバッグ用）"
+       ],
+       [
+        "`mapToInt(ToIntFunction)`",
+        "IntStream に変換"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "h": "主な終端操作",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "操作",
+       "戻り値"
+      ],
+      "rows": [
+       [
+        "`forEach(Consumer)`",
+        "なし"
+       ],
+       [
+        "`collect(Collector)` / `toList()`",
+        "コレクションなど（toList は不変）"
+       ],
+       [
+        "`count()`",
+        "long"
+       ],
+       [
+        "`reduce(初期値, BinaryOperator)`",
+        "T"
+       ],
+       [
+        "`reduce(BinaryOperator)` / `min` / `max`",
+        "`Optional<T>`"
+       ],
+       [
+        "`findFirst()` / `findAny()`",
+        "`Optional<T>`"
+       ],
+       [
+        "`anyMatch` / `allMatch` / `noneMatch`",
+        "boolean（短絡）"
+       ],
+       [
+        "IntStream の `sum()` / `average()`",
+        "int / OptionalDouble"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "h": "Collectors による集計",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`groupingBy` の第2引数（ダウンストリームコレクタ）で、グループごとの集計方法を指定できます。`toMap` はキーが重複すると `IllegalStateException` になるので、重複がありうるなら第3引数でマージ方法を渡します。"
+     },
+     {
+      "type": "code",
+      "text": "// 状態ごとの件数\nMap<LotStatus, Long> byStatus = lots.stream()\n    .collect(Collectors.groupingBy(Lot::status, Collectors.counting()));\n\n// 原料コードごとのロット番号一覧\nMap<String, List<String>> byMaterial = lots.stream()\n    .collect(Collectors.groupingBy(l -> l.material().code(),\n             Collectors.mapping(Lot::lotNo, Collectors.toList())));\n\n// 合格と不合格に二分\nMap<Boolean, List<Lot>> split = lots.stream()\n    .collect(Collectors.partitioningBy(l -> l.status() == LotStatus.PASSED));\n\nString csv = lots.stream().map(Lot::lotNo).collect(Collectors.joining(\",\"));"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "生成 → 中間 → 終端。中間操作は遅延評価",
+   "Stream は再利用できない",
+   "初期値なしの reduce・min・max・findFirst は Optional を返す",
+   "groupingBy のダウンストリームで集計方法を変える"
+  ],
+  "traps": [
+   "終端操作がないと peek も map も実行されない",
+   "`toList()`（16）の結果は不変。`Collectors.toList()` は変更可能だが保証はない"
+  ]
+ },
+ {
+  "id": 16,
+  "part": 4,
+  "t": "Optional",
+  "sum": "値がないかもしれないことを型で表す",
+  "quiz": [
+   17
+  ],
+  "lead": "Optional は「結果がないかもしれない」ことを戻り値の型で示し、null チェック漏れによる NullPointerException を防ぎます。",
+  "secs": [
+   {
+    "h": "生成",
+    "blocks": [
+     {
+      "type": "code",
+      "text": "Optional<Lot> a = Optional.of(lot);          // lot が null なら NullPointerException\nOptional<Lot> b = Optional.ofNullable(maybe); // null なら空\nOptional<Lot> c = Optional.empty();"
+     }
+    ]
+   },
+   {
+    "h": "値の取り出し",
+    "blocks": [
+     {
+      "type": "table",
+      "header": [
+       "メソッド",
+       "空のとき"
+      ],
+      "rows": [
+       [
+        "`orElse(値)`",
+        "指定値を返す。引数は空でなくても**常に評価**される"
+       ],
+       [
+        "`orElseGet(Supplier)`",
+        "Supplier を呼んだ結果を返す（空のときだけ評価）"
+       ],
+       [
+        "`orElseThrow()`（10）",
+        "NoSuchElementException"
+       ],
+       [
+        "`orElseThrow(Supplier)`",
+        "指定した例外を投げる"
+       ],
+       [
+        "`ifPresent(Consumer)`",
+        "何もしない"
+       ],
+       [
+        "`ifPresentOrElse(Consumer, Runnable)`（9）",
+        "Runnable を実行"
+       ],
+       [
+        "`get()`",
+        "NoSuchElementException（使わない）"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "h": "変換",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`map` で中身を変換でき、空なら空のまま流れます。変換関数自体が Optional を返す場合は `flatMap` を使います。"
+     },
+     {
+      "type": "code",
+      "text": "Optional<Lot> found = repo.findByLotNo(\"L-001\");\n\nString name = found\n    .filter(l -> l.status() == LotStatus.APPROVED)\n    .map(l -> l.material().name())\n    .orElse(\"使用可能なロットはありません\");\n\nLot lot = repo.findByLotNo(no)\n    .orElseThrow(() -> new IllegalArgumentException(\"ロットがありません: \" + no));"
+     }
+    ]
+   },
+   {
+    "h": "使いどころ",
+    "blocks": [
+     {
+      "type": "list",
+      "items": [
+       "主に**メソッドの戻り値**に使う",
+       "フィールドやメソッドの引数には使わない",
+       "コレクションを返すメソッドは Optional ではなく空のコレクションを返す",
+       "`isPresent()` と `get()` の組み合わせは null チェックと変わらないので、`map` や `orElse` 系で書く"
+      ]
+     }
+    ]
+   }
+  ],
+  "points": [
+   "Optional.of(null) は NPE、ofNullable を使う",
+   "orElse は常に評価、orElseGet は空のときだけ",
+   "map は空ならそのまま空",
+   "戻り値専用と考える"
+  ],
+  "traps": [
+   "`orElse(createDefault())` は値があっても createDefault が実行される"
+  ]
+ },
+ {
+  "id": 17,
+  "part": 4,
+  "t": "record・sealed・パターンマッチング",
+  "sum": "データクラス、継承の制限、型による分岐",
+  "quiz": [
+   13,
+   20,
+   21
+  ],
+  "lead": "Java 16〜21 で揃った機能群です。データを record で表し、取りうる型を sealed で限定し、パターンマッチングで安全に分岐する、という組み合わせで使います。",
+  "secs": [
+   {
+    "h": "record（Java 16）",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "record は不変のデータを持つクラスを1行で定義します。次のものが自動生成されます。"
+     },
+     {
+      "type": "list",
+      "items": [
+       "private final フィールド",
+       "全フィールドを受け取るコンストラクタ（正規コンストラクタ）",
+       "フィールド名と同じ名前のアクセサ（`x()`。`getX()` ではない）",
+       "`equals`・`hashCode`・`toString`"
+      ]
+     },
+     {
+      "type": "p",
+      "text": "record は暗黙に final で、他のクラスを extends できません（インタフェースの実装は可）。インスタンスフィールドは追加できませんが、static フィールドやメソッドは追加できます。入力チェックは**コンパクトコンストラクタ**に書きます。"
+     },
+     {
+      "type": "code",
+      "text": "record TestResult(String item, double value, String unit) {\n    TestResult {                         // コンパクトコンストラクタ\n        if (value < 0) throw new IllegalArgumentException(\"負の値\");\n        unit = unit.strip();             // 代入前の引数を加工できる\n    }\n    String display() { return value + \" \" + unit; }\n}\n\nvar r = new TestResult(\"pH\", 7.1, \" \");\nSystem.out.println(r.value());           // 7.1\nSystem.out.println(r);                   // TestResult[item=pH, value=7.1, unit=]"
+     }
+    ]
+   },
+   {
+    "h": "sealed クラス・インタフェース（Java 17）",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "`sealed` と `permits` で、継承・実装できる型を限定します。許可されたサブクラスは、`final`（これ以上継承させない）、`sealed`（さらに限定する）、`non-sealed`（制限を外す）のいずれかを宣言します。record と enum は暗黙に final です。"
+     },
+     {
+      "type": "code",
+      "text": "sealed interface Judgement permits Pass, Fail, Pending {}\nrecord Pass(String approver) implements Judgement {}\nrecord Fail(String reason)   implements Judgement {}\nrecord Pending()             implements Judgement {}"
+     }
+    ]
+   },
+   {
+    "h": "instanceof のパターンマッチング（Java 16）",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "型チェックとキャストを1度に書けます。パターン変数は、マッチしたことが確実な範囲でだけ使えます（`&&` の右側では使えるが、`||` の右側では使えない）。"
+     },
+     {
+      "type": "code",
+      "text": "// 以前の書き方\nif (obj instanceof String) {\n    String s = (String) obj;\n    System.out.println(s.length());\n}\n// Java 16 以降\nif (obj instanceof String s && !s.isBlank()) {\n    System.out.println(s.length());\n}"
+     }
+    ]
+   },
+   {
+    "h": "switch のパターンマッチング（Java 21）",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "switch の case に型パターンを書けます。`when` で条件を追加でき、sealed 型を網羅すれば default は不要です。record パターンを使うと、アクセサを呼ばずに中身を取り出せます。"
+     },
+     {
+      "type": "code",
+      "text": "static String label(Judgement j) {\n    return switch (j) {\n        case Pass p                         -> \"合格（承認: \" + p.approver() + \"）\";\n        case Fail(String reason) when reason.isBlank() -> \"不合格\";\n        case Fail(String reason)            -> \"不合格: \" + reason;   // record パターン\n        case Pending()                      -> \"判定待ち\";\n    };   // sealed を網羅しているので default 不要\n}"
+     }
+    ]
+   },
+   {
+    "h": "組み合わせると何がうれしいか",
+    "blocks": [
+     {
+      "type": "p",
+      "text": "新しい判定結果の型（例えば `Hold`）を permits に追加すると、それを扱っていない switch 式がすべて**コンパイルエラー**になります。分岐の漏れを実行前に見つけられるので、承認フローのように状態が増えていく業務ロジックで特に効果があります。"
+     }
+    ]
+   }
+  ],
+  "points": [
+   "record はアクセサ x()、equals・hashCode・toString を自動生成",
+   "record は final、インスタンスフィールドは追加不可",
+   "sealed のサブクラスは final / sealed / non-sealed",
+   "sealed を網羅した switch は default 不要"
+  ],
+  "traps": [
+   "パターン変数は `||` の右側では使えない",
+   "switch のパターンでは、広い型の case を狭い型より前に書くとコンパイルエラー（支配される case）"
+  ]
+ }
+]
