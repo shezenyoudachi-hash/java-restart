@@ -239,11 +239,14 @@ struct NoteDetailView: View {
 
 // MARK: - どのタブにも出るミニプレイヤー
 
-struct MiniPlayerModifier: ViewModifier {
+/// 画面の下端にミニプレイヤーを差し込む。
+/// （ViewModifier の Content と、アプリのデータ型 Content の名前がぶつかるため、ViewModifier は使わない）
+struct MiniPlayerHost<Wrapped: View>: View {
     @Environment(SpeechPlayer.self) private var player
+    let wrapped: Wrapped
 
-    func body(content: Content) -> some View {
-        content.safeAreaInset(edge: .bottom, spacing: 0) {
+    var body: some View {
+        wrapped.safeAreaInset(edge: .bottom, spacing: 0) {
             if player.isActive, let note = player.current {
                 MiniPlayer(note: note)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -254,7 +257,7 @@ struct MiniPlayerModifier: ViewModifier {
 }
 
 extension View {
-    func miniPlayer() -> some View { modifier(MiniPlayerModifier()) }
+    func miniPlayer() -> some View { MiniPlayerHost(wrapped: self) }
 }
 
 private struct MiniPlayer: View {
