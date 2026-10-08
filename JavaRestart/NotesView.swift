@@ -33,7 +33,7 @@ struct NotesView: View {
             }
             .navigationTitle("学習ノート")
             .navigationDestination(for: ListenNote.self) { note in
-                NoteDetailView(note: note, openChapter: openChapter)
+                NoteDetailView(note: note, series: NotesContent.playOrder, openChapter: openChapter)
             }
         }
     }
@@ -132,7 +132,10 @@ struct NoteDetailView: View {
     @Environment(SpeechPlayer.self) private var player
     @Environment(ProgressStore.self) private var store
     let note: ListenNote
-    let openChapter: (Int) -> Void
+    /// 「ここから続けて」で続けて再生する並び（学習ノート全体、または参考書の章）
+    let series: [ListenNote]
+    /// 参考書の章へ移動する。nil のときはリンクを出さない（章の画面から開いたとき）
+    let openChapter: ((Int) -> Void)?
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -145,7 +148,7 @@ struct NoteDetailView: View {
                                 .id(i)
                         }
                     }
-                    if let ch = note.chapter, let chapter = Content.chapter(ch) {
+                    if let openChapter, let ch = note.chapter, let chapter = Content.chapter(ch) {
                         Button {
                             openChapter(ch)
                         } label: {
@@ -172,7 +175,9 @@ struct NoteDetailView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 TagView(text: note.category)
-                Text(note.date).font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                if !note.date.isEmpty {
+                    Text(note.date).font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                }
                 if store.listened.contains(note.id) {
                     Label("聞いた", systemImage: "checkmark.circle.fill")
                         .font(.caption).foregroundStyle(Palette.accent)
@@ -193,13 +198,13 @@ struct NoteDetailView: View {
                     Button {
                         player.play([note])
                     } label: {
-                        Label("このノートを聞く", systemImage: "play.fill")
+                        Label(note.id.hasPrefix("book-") ? "この章を聞く" : "このノートを聞く", systemImage: "play.fill")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
 
                     Button {
-                        player.play(NotesContent.playOrder, startAt: note)
+                        player.play(series, startAt: note)
                     } label: {
                         Label("ここから続けて", systemImage: "text.line.first.and.arrowtriangle.forward")
                     }

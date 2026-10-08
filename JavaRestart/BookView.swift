@@ -13,6 +13,7 @@ struct BookView: View {
                 }
                 ForEach(Content.parts) { part in
                     Section {
+                        PartListenRow(part: part)
                         ForEach(Content.chapters(in: part)) { ch in
                             NavigationLink(value: ch.id) {
                                 ChapterRow(chapter: ch)
@@ -125,6 +126,12 @@ private struct ChapterRow: View {
             }
             Spacer(minLength: 4)
             VStack(alignment: .trailing, spacing: 2) {
+                if let track = BookAudio.track(for: chapter.id) {
+                    Image(systemName: store.listened.contains(track.id) ? "headphones.circle.fill" : "headphones")
+                        .font(.caption)
+                        .foregroundStyle(store.listened.contains(track.id) ? Palette.accent : .secondary)
+                        .accessibilityLabel(store.listened.contains(track.id) ? "音声あり・聞いた" : "音声あり")
+                }
                 if state == .reading {
                     Text("読書中").font(.caption2).foregroundStyle(Palette.accent)
                 }
@@ -153,6 +160,9 @@ struct ChapterView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     header
+                    if let track = BookAudio.track(for: chapter.id) {
+                        ChapterListenBar(track: track)
+                    }
                     toc(proxy: proxy)
                     ForEach(chapter.secs) { sec in
                         VStack(alignment: .leading, spacing: 12) {
@@ -270,5 +280,99 @@ struct ChapterView: View {
             .padding(.top, 4)
         }
         .padding(.top, 8)
+    }
+}
+
+// MARK: - 参考書の読み上げ
+
+/// 部の先頭に出す「通して聞く」行。台本のある章がない部では何も出さない
+private struct PartListenRow: View {
+    @Environment(SpeechPlayer.self) private var player
+    let part: Part
+
+    var body: some View {
+        let tracks = BookAudio.tracks(in: part)
+        if !tracks.isEmpty {
+            Button {
+                player.play(tracks)
+            } label: {
+                HStack {
+                    Label("第\(part.n)部を通して聞く", systemImage: "headphones")
+                    Spacer()
+                    Text("\(tracks.count)章・約\(Self.minutes(tracks))分")
+                        .font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    /// 日本語の読み上げを 1 分あたり約 300 字として概算
+    static func minutes(_ tracks: [ListenNote]) -> Int {
+        let chars = tracks.reduce(0) { $0 + $1.script.joined().count }
+        return max(1, Int((Double(chars) / 300).rounded()))
+    }
+}
+
+/// 章の画面の上部に出す再生ボタン
+private struct ChapterListenBar: View {
+    @Environment(SpeechPlayer.self) private var player
+    @Environment(ProgressStore.self) private var store
+    @State private var showScript = false
+    let track: ListenNote
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                if player.isCurrent(track) {
+                    Button {
+                        player.togglePause()
+                    } label: {
+                        Label(player.isPaused ? "再開" : "一時停止",
+                              systemImage: player.isPaused ? "play.fill" : "pause.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                } else {
+                    Button {
+                        player.play([track])
+                    } label: {
+                        Label("この章を聞く", systemImage: "headphones")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                Button {
+                    showScript = true
+                } label: {
+                    Label("台本", systemImage: "text.alignleft")
+                }
+                .buttonStyle(.bordered)
+            }
+            .controlSize(.regular)
+
+            HStack(spacing: 6) {
+                Text("約\(PartListenRow.minutes([track]))分")
+                if store.listened.contains(track.id) {
+                    Label("聞いた", systemImage: "checkmark.circle.fill").foregroundStyle(Palette.accent)
+                }
+                if player.isCurrent(track) {
+                    Text("段落 \(player.paragraphIndex + 1) / \(track.script.count)").monospacedDigit()
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .sheet(isPresented: $showScript) {
+            NavigationStack {
+                NoteDetailView(note: track, series: BookAudio.tracks, openChapter: nil)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("閉じる") { showScript = false }
+                        }
+                    }
+            }
+            .environment(player)
+            .environment(store)
+        }
     }
 }

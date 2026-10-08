@@ -12,10 +12,15 @@ struct StatsView: View {
                     card("学習カレンダー（12週間）") { ActivityHeatmap() }
                     card("参考書：部ごとの読了") { partBars }
                     card("ドリル：カテゴリ別の正解数") { categoryBars }
-                    card("学習ノート") {
-                        bar(label: "最後まで聞いたノート",
-                            done: NotesContent.notes.filter { store.listened.contains($0.id) }.count,
-                            total: NotesContent.notes.count)
+                    card("聞いて学ぶ") {
+                        VStack(spacing: 12) {
+                            bar(label: "学習ノート",
+                                done: NotesContent.notes.filter { store.listened.contains($0.id) }.count,
+                                total: NotesContent.notes.count)
+                            bar(label: "参考書（音声のある章）",
+                                done: BookAudio.tracks.filter { store.listened.contains($0.id) }.count,
+                                total: BookAudio.tracks.count)
+                        }
                     }
                     card("作って学ぶ") {
                         bar(label: "完了したステップ",

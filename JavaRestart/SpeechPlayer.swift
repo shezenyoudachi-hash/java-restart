@@ -2,7 +2,7 @@ import AVFoundation
 import MediaPlayer
 import Observation
 
-// MARK: - 学習ノート（聞く用台本）のデータ
+// MARK: - 聞く用台本のデータ（学習ノートと参考書の章で共通の形）
 
 struct ListenNote: Decodable, Identifiable, Hashable {
     let id: String
@@ -14,42 +14,66 @@ struct ListenNote: Decodable, Identifiable, Hashable {
     let script: [String]
 }
 
-private struct NotesFile: Decodable {
-    let readings: [String: String]
-    let notes: [ListenNote]
+private func loadJSON<T: Decodable>(_ name: String, as type: T.Type) -> T {
+    guard let url = Bundle.main.url(forResource: name, withExtension: "json"),
+          let data = try? Data(contentsOf: url) else {
+        fatalError("\(name).json がバンドルにありません")
+    }
+    do {
+        return try JSONDecoder().decode(T.self, from: data)
+    } catch {
+        fatalError("\(name).json を読み込めません: \(error)")
+    }
 }
 
+/// 学習ノート（質問への解説を台本にしたもの）
 enum NotesContent {
-    private static let file: NotesFile = {
-        guard let url = Bundle.main.url(forResource: "notes", withExtension: "json"),
-              let data = try? Data(contentsOf: url) else {
-            fatalError("notes.json がバンドルにありません")
-        }
-        do {
-            return try JSONDecoder().decode(NotesFile.self, from: data)
-        } catch {
-            fatalError("notes.json を読み込めません: \(error)")
-        }
-    }()
+    private struct File: Decodable { let notes: [ListenNote] }
+    private static let file = loadJSON("notes", as: File.self)
 
     /// 新しいノートが上に来るよう、追記順の逆で並べる
     static var notes: [ListenNote] { file.notes.reversed() }
 
     /// 再生は追記した順（古い順）
     static var playOrder: [ListenNote] { file.notes }
+}
 
-    /// 英単語をカタカナの読みに置き換える（長い語から順に、英字の境界でのみ置換）
-    private static let readingRules: [(NSRegularExpression, String)] = {
-        file.readings.keys.sorted { $0.count > $1.count }.compactMap { word in
+/// 参考書の章の台本。台本がある章だけが含まれる
+enum BookAudio {
+    private struct File: Decodable {
+        struct Entry: Decodable { let chapter: Int; let script: [String] }
+        let chapters: [Entry]
+    }
+
+    static let tracks: [ListenNote] = loadJSON("book_audio", as: File.self).chapters.compactMap { e in
+        guard let ch = Content.chapter(e.chapter) else { return nil }
+        let partName = Content.part(ch.part).map { "第\($0.n)部 \($0.t)" } ?? "参考書"
+        return ListenNote(id: "book-\(ch.id)", date: "", title: "第\(ch.id)章 \(ch.t)",
+                          category: partName, chapter: ch.id, summary: ch.sum, script: e.script)
+    }
+
+    static func track(for chapterID: Int) -> ListenNote? { tracks.first { $0.chapter == chapterID } }
+
+    static func tracks(in part: Part) -> [ListenNote] {
+        tracks.filter { t in t.chapter.flatMap(Content.chapter)?.part == part.n }
+    }
+}
+
+/// 英単語の読み（readings.json）。長い語から順に、英字の境界でのみカタカナに置き換える
+enum Pronunciation {
+    private static let readings = loadJSON("readings", as: [String: String].self)
+
+    private static let rules: [(NSRegularExpression, String)] = {
+        readings.keys.sorted { $0.count > $1.count }.compactMap { word in
             let pattern = "(?<![A-Za-z])" + NSRegularExpression.escapedPattern(for: word) + "(?![A-Za-z])"
             guard let re = try? NSRegularExpression(pattern: pattern) else { return nil }
-            return (re, NSRegularExpression.escapedTemplate(for: file.readings[word] ?? word))
+            return (re, NSRegularExpression.escapedTemplate(for: readings[word] ?? word))
         }
     }()
 
     static func spoken(_ text: String) -> String {
         var s = text
-        for (re, template) in readingRules {
+        for (re, template) in rules {
             s = re.stringByReplacingMatches(in: s, range: NSRange(s.startIndex..., in: s), withTemplate: template)
         }
         return s
@@ -196,7 +220,7 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
             stop()
             return
         }
-        let text = NotesContent.spoken(note.script[paragraphIndex])
+        let text = Pronunciation.spoken(note.script[paragraphIndex])
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = Self.japaneseVoice
         utterance.rate = Self.utteranceRate(for: rate)
