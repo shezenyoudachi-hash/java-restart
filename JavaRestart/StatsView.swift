@@ -12,6 +12,11 @@ struct StatsView: View {
                     card("学習カレンダー（12週間）") { ActivityHeatmap() }
                     card("参考書：部ごとの読了") { partBars }
                     card("ドリル：カテゴリ別の正解数") { categoryBars }
+                    card("学習ノート") {
+                        bar(label: "最後まで聞いたノート",
+                            done: NotesContent.notes.filter { store.listened.contains($0.id) }.count,
+                            total: NotesContent.notes.count)
+                    }
                     card("作って学ぶ") {
                         bar(label: "完了したステップ",
                             done: store.stepsDone.count,

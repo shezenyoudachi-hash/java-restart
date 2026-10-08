@@ -3,17 +3,22 @@ import SwiftUI
 @main
 struct JavaRestartApp: App {
     @State private var store = ProgressStore()
+    @State private var player = SpeechPlayer()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(store)
+                .environment(player)
+                .onAppear {
+                    player.onFinishNote = { [store] note in store.markListened(note.id) }
+                }
         }
     }
 }
 
 enum AppTab: Hashable {
-    case book, drill, stats, build
+    case book, notes, drill, stats, build
 }
 
 struct RootView: View {
@@ -27,23 +32,34 @@ struct RootView: View {
                 drillRequest = DrillRequest(scope: .chapter(chapter.id))
                 tab = .drill
             })
+            .miniPlayer()
             .tabItem { Label("参考書", systemImage: "book") }
             .tag(AppTab.book)
 
-            DrillView(request: $drillRequest, openChapter: { id in
-                bookPath = [id]
-                tab = .book
-            })
-            .tabItem { Label("ドリル", systemImage: "checklist") }
-            .tag(AppTab.drill)
+            NotesView(openChapter: openChapter)
+                .miniPlayer()
+                .tabItem { Label("ノート", systemImage: "headphones") }
+                .tag(AppTab.notes)
+
+            DrillView(request: $drillRequest, openChapter: openChapter)
+                .miniPlayer()
+                .tabItem { Label("ドリル", systemImage: "checklist") }
+                .tag(AppTab.drill)
 
             StatsView()
+                .miniPlayer()
                 .tabItem { Label("進捗", systemImage: "chart.bar.xaxis") }
                 .tag(AppTab.stats)
 
             BuildView()
+                .miniPlayer()
                 .tabItem { Label("作って学ぶ", systemImage: "hammer") }
                 .tag(AppTab.build)
         }
+    }
+
+    private func openChapter(_ id: Int) {
+        bookPath = [id]
+        tab = .book
     }
 }

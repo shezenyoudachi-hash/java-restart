@@ -20,6 +20,8 @@ final class ProgressStore {
     /// "yyyy-MM-dd" → その日の学習アクション数
     private(set) var activity: [String: Int] = [:]
     private(set) var lastChapter: Int?
+    /// 最後まで聞いた学習ノートの id
+    private(set) var listened: Set<String> = []
 
     private struct Snapshot: Codable {
         var chapterStates: [Int: ReadState]
@@ -27,6 +29,7 @@ final class ProgressStore {
         var stepsDone: Set<Int>
         var activity: [String: Int]
         var lastChapter: Int?
+        var listened: Set<String>?   // 後から追加した項目。古い保存データには無いので optional
     }
 
     private let key = "progress.v1"
@@ -39,11 +42,12 @@ final class ProgressStore {
         stepsDone = s.stepsDone
         activity = s.activity
         lastChapter = s.lastChapter
+        listened = s.listened ?? []
     }
 
     private func save() {
         let s = Snapshot(chapterStates: chapterStates, answers: answers, stepsDone: stepsDone,
-                         activity: activity, lastChapter: lastChapter)
+                         activity: activity, lastChapter: lastChapter, listened: listened)
         if let data = try? JSONEncoder().encode(s) {
             UserDefaults.standard.set(data, forKey: key)
         }
@@ -88,12 +92,19 @@ final class ProgressStore {
         save()
     }
 
+    func markListened(_ noteID: String) {
+        listened.insert(noteID)
+        logActivity()
+        save()
+    }
+
     func resetAll() {
         chapterStates = [:]
         answers = [:]
         stepsDone = []
         activity = [:]
         lastChapter = nil
+        listened = []
         save()
     }
 
