@@ -2,9 +2,19 @@ import SwiftUI
 
 @main
 struct JavaRestartApp: App {
-    @State private var store = ProgressStore()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var store: ProgressStore
     @State private var player = SpeechPlayer()
-    @State private var marks = MarkStore()
+    @State private var marks: MarkStore
+    @State private var sync: SyncService
+
+    init() {
+        let store = ProgressStore()
+        let marks = MarkStore()
+        _store = State(initialValue: store)
+        _marks = State(initialValue: marks)
+        _sync = State(initialValue: SyncService(store: store, marks: marks))
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -12,9 +22,13 @@ struct JavaRestartApp: App {
                 .environment(store)
                 .environment(player)
                 .environment(marks)
+                .environment(sync)
                 .onAppear {
                     player.onFinishNote = { [store] note in store.markListened(note.id) }
                 }
+        }
+        .onChange(of: scenePhase) {
+            if scenePhase == .active { sync.refresh() }
         }
     }
 }

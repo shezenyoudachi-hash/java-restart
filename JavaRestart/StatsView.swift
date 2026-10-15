@@ -35,6 +35,10 @@ struct StatsView: View {
                             done: store.stepsDone.count,
                             total: Content.steps.count)
                     }
+                    SyncCard()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
                     Button("進捗をすべてリセット", role: .destructive) { confirmReset = true }
                         .font(.footnote)
                         .padding(.top, 8)
@@ -45,7 +49,7 @@ struct StatsView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("進捗")
-            .confirmationDialog("読了状況・回答履歴・学習カレンダーをすべて消去します。元に戻せません。",
+            .confirmationDialog("読了状況・回答履歴・学習カレンダーをすべて消去します。元に戻せません。同期しているほかの iPhone の進捗も、次の同期で消えます。",
                                 isPresented: $confirmReset, titleVisibility: .visible) {
                 Button("リセットする", role: .destructive) { store.resetAll() }
             }

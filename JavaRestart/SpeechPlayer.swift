@@ -102,7 +102,7 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     /// 1つのノートを最後まで聞き終えたときに呼ばれる（進捗の記録用）
     @ObservationIgnored var onFinishNote: ((ListenNote) -> Void)?
 
-    @ObservationIgnored private let synthesizer = AVSpeechSynthesizer()
+    private let synthesizer = AVSpeechSynthesizer()
     /// いま読んでいる発話。停止・スキップした古い発話の完了通知を無視するために使う
     @ObservationIgnored private var currentUtterance: AVSpeechUtterance?
     @ObservationIgnored private var commandsInstalled = false

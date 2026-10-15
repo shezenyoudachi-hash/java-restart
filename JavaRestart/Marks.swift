@@ -24,29 +24,79 @@ struct StudyMark: Codable, Identifiable, Hashable {
     var memo: String
     let createdAt: Date
     var resolvedAt: Date?
+    /// メモや解決済みを変えた時刻（同期で新しい方を選ぶ）。古い保存データには無いので optional
+    var updatedAt: Date?
 
     var isResolved: Bool { resolvedAt != nil }
+    var lastChanged: Date { updatedAt ?? createdAt }
+
+    /// 2台のマークを合わせる。マークごとに新しい方を採用し、削除した記録より古いマークは消す
+    static func merge(_ a: [StudyMark], _ deletedA: [String: Date],
+                      _ b: [StudyMark], _ deletedB: [String: Date]) -> (marks: [StudyMark], deleted: [String: Date]) {
+        var deleted = deletedA
+        for (k, t) in deletedB { deleted[k] = max(deleted[k] ?? .distantPast, t) }
+
+        var byID: [String: StudyMark] = [:]
+        for m in a + b {
+            if let cur = byID[m.id] {
+                // 新しい方。同時刻なら内容で決めて、どちらから合わせても同じ結果にする
+                let resolvedM = m.resolvedAt ?? .distantPast, resolvedC = cur.resolvedAt ?? .distantPast
+                if (m.lastChanged, resolvedM, m.memo) > (cur.lastChanged, resolvedC, cur.memo) {
+                    byID[m.id] = m
+                }
+            } else {
+                byID[m.id] = m
+            }
+        }
+        let alive = byID.values.filter { m in
+            guard let d = deleted[m.id] else { return true }
+            return m.lastChanged > d
+        }
+        return (alive.sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }, deleted)
+    }
 }
 
 /// マークの保存先。端末内（UserDefaults）に保存する
 @Observable
 final class MarkStore {
     private(set) var marks: [StudyMark] = []
+    /// 削除したマークの id と削除した時刻（同期で、他の端末から復活しないようにする）
+    @ObservationIgnored private(set) var deleted: [String: Date] = [:]
     /// 一覧から「この箇所を開く」を押したとき、章の画面でスクロールする先
     var pendingFocus: String?
 
+    /// 内容が変わって保存したときに呼ばれる（同期用）
+    @ObservationIgnored var onChange: (() -> Void)?
+
     private let key = "marks.v1"
+    private let deletedKey = "marks.deleted.v1"
 
     init() {
-        guard let data = UserDefaults.standard.data(forKey: key),
-              let saved = try? JSONDecoder().decode([StudyMark].self, from: data) else { return }
-        marks = saved
+        let d = UserDefaults.standard
+        if let data = d.data(forKey: key), let saved = try? JSONDecoder().decode([StudyMark].self, from: data) {
+            marks = saved
+        }
+        if let data = d.data(forKey: deletedKey), let saved = try? JSONDecoder().decode([String: Date].self, from: data) {
+            deleted = saved
+        }
     }
 
-    private func save() {
-        if let data = try? JSONEncoder().encode(marks) {
-            UserDefaults.standard.set(data, forKey: key)
-        }
+    private func save(notify: Bool = true) {
+        let enc = JSONEncoder()
+        if let data = try? enc.encode(marks) { UserDefaults.standard.set(data, forKey: key) }
+        if let data = try? enc.encode(deleted) { UserDefaults.standard.set(data, forKey: deletedKey) }
+        if notify { onChange?() }
+    }
+
+    /// 別の端末のマークを合わせる。内容が変わったら true
+    @discardableResult
+    func merge(_ other: [StudyMark], deleted otherDeleted: [String: Date]) -> Bool {
+        let r = StudyMark.merge(marks, deleted, other, otherDeleted)
+        guard Set(r.marks) != Set(marks) || r.deleted != deleted else { return false }
+        marks = r.marks
+        deleted = r.deleted
+        save(notify: false)
+        return true
     }
 
     func mark(for key: String) -> StudyMark? { marks.first { $0.id == key } }
@@ -59,15 +109,17 @@ final class MarkStore {
 
     func add(_ target: MarkTarget, memo: String) {
         let trimmed = memo.trimmingCharacters(in: .whitespacesAndNewlines)
+        let now = Date()
         if let i = marks.firstIndex(where: { $0.id == target.key }) {
             // 解決済みの箇所にもう一度マークしたときは、未解決に戻してメモを更新する
             marks[i].memo = trimmed
             marks[i].resolvedAt = nil
+            marks[i].updatedAt = now
         } else {
             marks.append(StudyMark(id: target.key, kind: target.kind, chapterID: target.chapterID,
                                    scriptID: target.scriptID, group: target.group, place: target.place,
                                    excerpt: target.excerpt, isCode: target.isCode, memo: trimmed,
-                                   createdAt: Date(), resolvedAt: nil))
+                                   createdAt: now, resolvedAt: nil, updatedAt: now))
         }
         save()
     }
@@ -75,27 +127,36 @@ final class MarkStore {
     func setMemo(_ key: String, _ memo: String) {
         guard let i = marks.firstIndex(where: { $0.id == key }) else { return }
         marks[i].memo = memo.trimmingCharacters(in: .whitespacesAndNewlines)
+        marks[i].updatedAt = Date()
         save()
     }
 
     func setResolved(_ key: String, _ resolved: Bool) {
         guard let i = marks.firstIndex(where: { $0.id == key }) else { return }
-        marks[i].resolvedAt = resolved ? Date() : nil
+        let now = Date()
+        marks[i].resolvedAt = resolved ? now : nil
+        marks[i].updatedAt = now
         save()
     }
 
     func resolveAllOpen() {
         let now = Date()
-        for i in marks.indices where marks[i].resolvedAt == nil { marks[i].resolvedAt = now }
+        for i in marks.indices where marks[i].resolvedAt == nil {
+            marks[i].resolvedAt = now
+            marks[i].updatedAt = now
+        }
         save()
     }
 
     func remove(_ key: String) {
         marks.removeAll { $0.id == key }
+        deleted[key] = Date()
         save()
     }
 
     func removeAll() {
+        let now = Date()
+        for m in marks { deleted[m.id] = now }
         marks = []
         save()
     }
