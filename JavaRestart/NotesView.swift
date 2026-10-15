@@ -5,6 +5,8 @@ import SwiftUI
 struct NotesView: View {
     @Environment(ProgressStore.self) private var store
     @Environment(SpeechPlayer.self) private var player
+    @Environment(MarkStore.self) private var marks
+    @State private var showMarks = false
     let openChapter: (Int) -> Void
 
     var body: some View {
@@ -32,6 +34,17 @@ struct NotesView: View {
                 }
             }
             .navigationTitle("学習ノート")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    MarksToolbarButton { showMarks = true }
+                }
+            }
+            .sheet(isPresented: $showMarks) {
+                MarksView(openChapter: openChapter)
+                    .environment(marks)
+                    .environment(store)
+                    .environment(player)
+            }
             .navigationDestination(for: ListenNote.self) { note in
                 NoteDetailView(note: note, series: NotesContent.playOrder, openChapter: openChapter)
             }
@@ -212,7 +225,7 @@ struct NoteDetailView: View {
                 }
             }
             .controlSize(.large)
-            Text("段落をタップすると、そこから読み上げます。")
+            Text("段落をタップすると、そこから読み上げます。長押しで「わからない」にマークできます。")
                 .font(.caption2).foregroundStyle(.secondary)
         }
     }
@@ -239,6 +252,7 @@ struct NoteDetailView: View {
         }
         .buttonStyle(.plain)
         .animation(.easeOut(duration: 0.2), value: active)
+        .markable(MarkTarget.script(note, paragraph: i))
     }
 }
 

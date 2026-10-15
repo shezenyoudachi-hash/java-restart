@@ -4,12 +4,14 @@ import SwiftUI
 struct JavaRestartApp: App {
     @State private var store = ProgressStore()
     @State private var player = SpeechPlayer()
+    @State private var marks = MarkStore()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(store)
                 .environment(player)
+                .environment(marks)
                 .onAppear {
                     player.onFinishNote = { [store] note in store.markListened(note.id) }
                 }

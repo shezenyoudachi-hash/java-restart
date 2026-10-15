@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatsView: View {
     @Environment(ProgressStore.self) private var store
+    @Environment(MarkStore.self) private var marks
     @State private var confirmReset = false
 
     var body: some View {
@@ -12,6 +13,13 @@ struct StatsView: View {
                     card("学習カレンダー（12週間）") { ActivityHeatmap() }
                     card("参考書：部ごとの読了") { partBars }
                     card("ドリル：カテゴリ別の正解数") { categoryBars }
+                    card("わからない") {
+                        HStack(spacing: 24) {
+                            metric("未解決", "\(marks.open.count) 件")
+                            metric("解決済み", "\(marks.resolved.count) 件")
+                            Spacer()
+                        }
+                    }
                     card("聞いて学ぶ") {
                         VStack(spacing: 12) {
                             bar(label: "学習ノート",

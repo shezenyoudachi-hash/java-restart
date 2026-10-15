@@ -2,8 +2,11 @@ import SwiftUI
 
 struct BookView: View {
     @Environment(ProgressStore.self) private var store
+    @Environment(MarkStore.self) private var marks
+    @Environment(SpeechPlayer.self) private var player
     @Binding var path: [Int]
     let openQuiz: (Chapter) -> Void
+    @State private var showMarks = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -25,6 +28,17 @@ struct BookView: View {
                 }
             }
             .navigationTitle("参考書")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    MarksToolbarButton { showMarks = true }
+                }
+            }
+            .sheet(isPresented: $showMarks) {
+                MarksView(openChapter: { path = [$0] })
+                    .environment(marks)
+                    .environment(store)
+                    .environment(player)
+            }
             .navigationDestination(for: Int.self) { id in
                 if let ch = Content.chapter(id) {
                     ChapterView(chapter: ch,
@@ -150,6 +164,7 @@ private struct ChapterRow: View {
 
 struct ChapterView: View {
     @Environment(ProgressStore.self) private var store
+    @Environment(MarkStore.self) private var marks
     let chapter: Chapter
     let go: (Int) -> Void
     let openQuiz: (Chapter) -> Void
@@ -164,18 +179,21 @@ struct ChapterView: View {
                         ChapterListenBar(track: track)
                     }
                     toc(proxy: proxy)
-                    ForEach(chapter.secs) { sec in
+                    ForEach(Array(chapter.secs.enumerated()), id: \.offset) { si, sec in
                         VStack(alignment: .leading, spacing: 12) {
                             Text(sec.h).font(.title3.bold())
-                            ForEach(Array(sec.blocks.enumerated()), id: \.offset) { _, block in
+                            ForEach(Array(sec.blocks.enumerated()), id: \.offset) { bi, block in
+                                let target = MarkTarget.book(chapter, place: sec.h, key: "\(si)-\(bi)", block: block)
                                 BlockView(block: block)
+                                    .markable(target)
+                                    .id(target.key)
                             }
                         }
                         .id(sec.h)
                     }
-                    summaryBox(title: "要点", icon: "lightbulb", items: chapter.points, tint: Palette.accent)
+                    summaryBox(title: "要点", key: "points", icon: "lightbulb", items: chapter.points, tint: Palette.accent)
                     if !chapter.traps.isEmpty {
-                        summaryBox(title: "落とし穴", icon: "exclamationmark.triangle", items: chapter.traps, tint: .orange)
+                        summaryBox(title: "落とし穴", key: "traps", icon: "exclamationmark.triangle", items: chapter.traps, tint: .orange)
                     }
                     footer(done: done)
                 }
@@ -184,6 +202,8 @@ struct ChapterView: View {
                 .frame(maxWidth: 720, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
+            .onAppear { focusIfNeeded(proxy) }
+            .onChange(of: marks.pendingFocus) { focusIfNeeded(proxy) }
         }
         .navigationTitle("第\(chapter.id)章")
         .navigationBarTitleDisplayMode(.inline)
@@ -196,7 +216,22 @@ struct ChapterView: View {
                 Text("第\(part.n)部 \(part.t)").font(.caption.weight(.semibold)).foregroundStyle(Palette.accent)
             }
             Text(chapter.t).font(.title.bold())
+            let lead = MarkTarget.book(chapter, place: "はじめに", key: "lead", text: chapter.lead)
             Text(md(chapter.lead)).foregroundStyle(.secondary).lineSpacing(4)
+                .markable(lead)
+                .id(lead.key)
+            Label("分からない文や表・コードは、長押しで「わからない」にマークできます", systemImage: "hand.tap")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// 「わからない」一覧から開いたとき、マークした箇所までスクロールする
+    private func focusIfNeeded(_ proxy: ScrollViewProxy) {
+        guard let key = marks.pendingFocus, key.hasPrefix("book-\(chapter.id)-") else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            withAnimation { proxy.scrollTo(key, anchor: .center) }
+            marks.pendingFocus = nil
         }
     }
 
@@ -220,14 +255,17 @@ struct ChapterView: View {
         .background(Palette.codeBackground.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
     }
 
-    private func summaryBox(title: String, icon: String, items: [String], tint: Color) -> some View {
+    private func summaryBox(title: String, key: String, icon: String, items: [String], tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(title, systemImage: icon).font(.headline).foregroundStyle(tint)
-            ForEach(items, id: \.self) { item in
+            ForEach(Array(items.enumerated()), id: \.offset) { i, item in
+                let target = MarkTarget.book(chapter, place: title, key: "\(key)-\(i)", text: item)
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text("•").foregroundStyle(tint)
                     Text(md(item)).fixedSize(horizontal: false, vertical: true)
                 }
+                .markable(target)
+                .id(target.key)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -317,6 +355,7 @@ private struct PartListenRow: View {
 private struct ChapterListenBar: View {
     @Environment(SpeechPlayer.self) private var player
     @Environment(ProgressStore.self) private var store
+    @Environment(MarkStore.self) private var marks
     @State private var showScript = false
     let track: ListenNote
 
@@ -373,6 +412,7 @@ private struct ChapterListenBar: View {
             }
             .environment(player)
             .environment(store)
+            .environment(marks)
         }
     }
 }

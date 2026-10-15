@@ -10,6 +10,8 @@ enum Palette {
     static let keyword = Color.purple
     static let string = Color(red: 0.18, green: 0.55, blue: 0.27)
     static let comment = Color.secondary
+    /// 「わからない」マーク
+    static let mark = Color.orange
 }
 
 // MARK: - インライン Markdown（`code` と **太字**）
